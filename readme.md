@@ -9,10 +9,10 @@ grade = nuke.createNode("Grade")
 noop = nuke.createNode("NoOp")
 grade.setInput(0, noop)
 grade.setXYPos(noop.xpos(), noop.ypos() + 50)
-
+nuke.scriptSaveAs("path.nk")
 ```
 
-```
+```path.nk
 CheckerBoard {
  name CheckerBoard1
  inputs 0
