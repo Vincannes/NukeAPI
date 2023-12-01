@@ -1,0 +1,17 @@
+CheckerBoard {
+ name CheckerBoard1
+ inputs 0
+ xpos 0
+ ypos 0
+}
+NoOp {
+ name NoOp1
+ inputs 0
+ xpos 0
+ ypos 150
+}
+Grade {
+ name Grade1
+ xpos 0
+ ypos 200
+}
