@@ -26,18 +26,11 @@ class Node(object):
         self._knobs_dict = {}
         self._knobs_object = {}
 
-        for _knob_name in self.DEFAULT_KNOBS:
-            if _knob_name == "name":
-                value = self._generate_name()
-            elif _knob_name in ["xpos", "ypos"]:
-                values = self._get_positions()
-                value = values[0] if _knob_name == "xpos" else values[1]
-            else:
-                value = 0
-            _knob = Knob(_knob_name, parent=self)
-            _knob.setValue(value)
-            self._knobs_dict[_knob_name] = value
-            self._knobs_object[_knob_name] = _knob
+        if class_name == "Root":
+            self._knobs_dict["inputs"] = 0
+            self._knobs_object["inputs"] = 0
+        else:
+            self._set_default_knobs()
 
         self._sub_class_name = f"[{self._get_index()}]{class_name}"
 
@@ -111,6 +104,21 @@ class Node(object):
                 continue
             similars_node.append(node)
         return similars_node
+
+    def _set_default_knobs(self):
+        for _knob_name in self.DEFAULT_KNOBS:
+            if _knob_name == "name":
+                value = self._generate_name()
+            elif _knob_name in ["xpos", "ypos"]:
+                values = self._get_positions()
+                value = values[0] if _knob_name == "xpos" else values[1]
+            else:
+                value = 0
+            _knob = Knob(_knob_name, parent=self)
+            _knob.setValue(value)
+            self._knobs_dict[_knob_name] = value
+            self._knobs_object[_knob_name] = _knob
+
 
 if __name__ == '__main__':
     from pprint import pprint
