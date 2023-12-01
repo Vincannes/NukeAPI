@@ -7,6 +7,20 @@ from collections import OrderedDict
 
 from pprint import pprint
 
+SCENE_DEFAULT_VALUES = {
+    "format": "2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)",
+    "proxy_format": "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)",
+    "colorManagement": "Nuke",
+    "workingSpaceLUT": "linear",
+    "monitorLut": "sRGB",
+    "monitorOutLUT": "rec709",
+    "int8Lut": "sRGB",
+    "int16Lut": "sRGB",
+    "logLut": "Cineon",
+    "floatLut": "linear",
+    "name": ""
+}
+
 
 class NukeCmds(object):
 
@@ -14,6 +28,13 @@ class NukeCmds(object):
         self.scene = scene
         if scene is None:
             self.scene = OrderedDict()
+        self._set_root()
+
+    def _set_root(self):
+        _root_node = Node("Root", self)
+        for knob, value in SCENE_DEFAULT_VALUES.items():
+            _root_node.knob(knob).setValue(value)
+        self.scene[_root_node.subClass()] = _root_node.get_node_dict()
 
     def createNode(self, name):
         _node = Node(name, self)
@@ -34,8 +55,8 @@ if __name__ == '__main__':
     noop = nuke.createNode("NoOp")
     noop2 = nuke.createNode("NoOp")
 
-    pprint(nuke.scene)
-    print("")
+    # pprint(nuke.scene)
+    # print("")
 
     read.knob("file").setValue("kdkdkdkdkdkd")
     grade.setInput(0, noop)
@@ -43,5 +64,5 @@ if __name__ == '__main__':
     noop2.setXYPos(250, 53)
     # noop2.setInput(0, check)
     print(read.knob("file").value())
-    pprint(nuke.scene)
+    # pprint(nuke.scene)
     nuke.scriptSaveAs(test_file_out)

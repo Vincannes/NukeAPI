@@ -1,26 +1,42 @@
+Root {
+ name 
+ inputs 0
+ xpos 0
+ ypos 0
+ format 2048 1556 0 0 2048 1556 1 2K_Super_35(full-ap)
+ proxy_format 1024 778 0 0 1024 778 1 1K_Super_35(full-ap)
+ colorManagement Nuke
+ workingSpaceLUT linear
+ monitorLut sRGB
+ monitorOutLUT rec709
+ int8Lut sRGB
+ int16Lut sRGB
+ logLut Cineon
+ floatLut linear
+}
 Read {
  name Read1
  inputs 0
  xpos 0
- ypos 0
+ ypos 50
  file kdkdkdkdkdkd
 }
 CheckerBoard {
  name CheckerBoard1
  inputs 0
  xpos 0
- ypos 50
+ ypos 150
 }
 NoOp {
  name NoOp1
  inputs 0
  xpos 0
- ypos 350
+ ypos 750
 }
 Grade {
  name Grade1
  xpos 0
- ypos 400
+ ypos 800
 }
 NoOp {
  name NoOp2

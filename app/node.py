@@ -1,10 +1,16 @@
 #!/usr/bin/env python
 # #support	:Trolard Vincent
 # copyright	:Vincannes
-
+import os
+import json
 from knob import Knob
 import regex_wrapper as regw
 from collections import OrderedDict
+
+NODES_KNOBS = {}
+path_node_knobs = os.path.join(os.path.dirname(__file__), "nodes_knobs.json")
+with open(path_node_knobs, 'r') as json_path:
+    NODES_KNOBS = json.load(json_path)
 
 
 class Node(object):
@@ -19,8 +25,6 @@ class Node(object):
         self._class_name = class_name
         self._knobs_dict = {}
         self._knobs_object = {}
-
-        self._get_node_from_dict()
 
         for _knob_name in self.DEFAULT_KNOBS:
             if _knob_name == "name":
@@ -38,7 +42,8 @@ class Node(object):
         self._sub_class_name = f"[{self._get_index()}]{class_name}"
 
     def knob(self, knob_name):
-        if knob_name not in self._knobs_object:
+        if knob_name not in self._knobs_object and \
+                knob_name in NODES_KNOBS.get(self._class_name):
             self._knobs_dict[knob_name] = 0
             self._knobs_object[knob_name] = Knob(knob_name, parent=self)
         return self._knobs_object.get(knob_name)
@@ -106,3 +111,7 @@ class Node(object):
                 continue
             similars_node.append(node)
         return similars_node
+
+if __name__ == '__main__':
+    from pprint import pprint
+    pprint(NODES_KNOBS)
