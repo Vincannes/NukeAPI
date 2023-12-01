@@ -29,12 +29,6 @@ class NukeCmds(object):
         if scene is None:
             self.scene = OrderedDict()
 
-    def _set_root(self, path):
-        _root_node = Node("Root", self)
-        _root_node.knob("name").setValue(path)
-        self.scene[_root_node.subClass()] = _root_node.get_node_dict()
-        self.scene.move_to_end(_root_node.subClass(), last=False)
-
     def createNode(self, name):
         _node = Node(name, self)
         self.scene[_node.subClass()] = _node.get_node_dict()
@@ -43,6 +37,14 @@ class NukeCmds(object):
     def scriptSaveAs(self, path):
         self._set_root(path)
         io_file.dict_to_nk_scene(self.scene, path)
+
+    # PRIVATES
+
+    def _set_root(self, path):
+        _root_node = Node("Root", self)
+        _root_node.knob("name").setValue(path)
+        self.scene[_root_node.subClass()] = _root_node.get_node_dict()
+        self.scene.move_to_end(_root_node.subClass(), last=False)
 
 
 if __name__ == '__main__':
