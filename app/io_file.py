@@ -1,4 +1,8 @@
+#!/usr/bin/env python
+# #support	:Trolard Vincent
+# copyright	:Vincannes
 import re
+
 
 def parse_node_group(node_group):
     node_info = {}
@@ -27,13 +31,10 @@ def nk_scene_to_dict(file_content):
 def dict_to_nk_scene(scene_dict, file_out):
     with open(file_out, 'w') as file:
         for node, values in scene_dict.items():
-            _node = node + " {\n"
+            _node = re.sub(r'\[\d+\]', '', node) + " {\n"
             file.write(_node)
             for knob, value in values.items():
                 _value = f" {knob} {value}\n"
                 file.write(_value)
             out_node = "}\n"
             file.write(out_node)
-#!/usr/bin/env python
-# #support	:Trolard Vincent
-# copyright	:Vincannes

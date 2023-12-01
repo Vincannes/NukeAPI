@@ -1,17 +1,30 @@
+Read {
+ name Read1
+ inputs 0
+ xpos 0
+ ypos 0
+ file kdkdkdkdkdkd
+}
 CheckerBoard {
  name CheckerBoard1
  inputs 0
  xpos 0
- ypos 0
+ ypos 50
 }
 NoOp {
  name NoOp1
  inputs 0
  xpos 0
- ypos 150
+ ypos 350
 }
 Grade {
  name Grade1
  xpos 0
- ypos 200
+ ypos 400
+}
+NoOp {
+ name NoOp2
+ inputs 0
+ xpos 250
+ ypos 53
 }
