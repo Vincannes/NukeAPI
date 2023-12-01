@@ -12,7 +12,8 @@ grade.setXYPos(noop.xpos(), noop.ypos() + 50)
 nuke.scriptSaveAs("path.nk")
 ```
 
-```path.nk
+### path.nk
+```
 CheckerBoard {
  name CheckerBoard1
  inputs 0
