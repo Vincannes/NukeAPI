@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 # #support	:Trolard Vincent
 # copyright	:Vincannes
-import re
+import regex_wrapper as regw
 
 
 def parse_node_group(node_group):
     node_info = {}
     for line in node_group.split('\n'):
-        match = re.match(r'\s*([a-zA-Z0-9_]+)\s*([^\n]+)?', line)
+        match = regw.get_knob_and_value(line)
         if match:
             key, value = match.groups()
             if value:
@@ -18,7 +18,7 @@ def parse_node_group(node_group):
 
 
 def nk_scene_to_dict(file_content):
-    node_groups = re.findall(r'([a-zA-Z0-9_]+)\s*{([^}]*)}', file_content)
+    node_groups = regw.get_node_with_knobs(file_content)
     parsed_data = {}
     for node_name, node_group_content in node_groups:
         if node_name.strip() in ["define_window_layout_xml"]:
@@ -31,7 +31,7 @@ def nk_scene_to_dict(file_content):
 def dict_to_nk_scene(scene_dict, file_out):
     with open(file_out, 'w') as file:
         for node, values in scene_dict.items():
-            _node = re.sub(r'\[\d+\]', '', node) + " {\n"
+            _node = regw.refine_class_node(node) + " {\n"
             file.write(_node)
             for knob, value in values.items():
                 _value = f" {knob} {value}\n"
