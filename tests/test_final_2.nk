@@ -25,10 +25,12 @@ Grade {
  name Grade1
  xpos 0
  ypos 400
+ selected True
 }
 NoOp {
  name NoOp2
  inputs 0
  xpos 250
  ypos 53
+ selected True
 }

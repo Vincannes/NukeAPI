@@ -34,6 +34,9 @@ class Node(object):
 
         self._sub_class_name = f"[{self._get_index()}]{class_name}"
 
+    def name(self):
+        return self._knobs_dict.get("name")
+
     def knob(self, knob_name):
         if knob_name not in self._knobs_object and \
                 knob_name in NODES_KNOBS.get(self._class_name):
@@ -47,10 +50,13 @@ class Node(object):
     def subClass(self):
         return self._sub_class_name
 
+    def isSelected(self):
+        return self._knobs_dict.get("selected", False)
+
     def setXYPos(self, x, y):
         self._knobs_dict["xpos"] = x
         self._knobs_dict["ypos"] = y
-        self.parent.scene[self._sub_class_name] = self._knobs_dict
+        self._update_dict()
 
     def setInput(self, index=0, node=None):
         if "inputs" in self._knobs_dict.keys():
@@ -64,6 +70,12 @@ class Node(object):
             key_order.insert(key_order.index(self._sub_class_name), node_to_place_before)
             self.parent.scene = OrderedDict((key, self.parent.scene[key]) for key in key_order)
 
+    def setSelected(self, selected=True):
+        if selected:
+            self._knobs_dict["selected"] = selected
+        else:
+            self._knobs_dict.pop("selected")
+
     def get_node_dict(self):
         return self._knobs_dict
 
@@ -73,7 +85,18 @@ class Node(object):
     def ypos(self):
         return self._knobs_dict.get("ypos")
 
+    def build_node_from_data(self, data):
+        for _knob_name, value in data.items():
+            _knob = Knob(_knob_name, parent=self)
+            _knob.setValue(value)
+            self._knobs_dict[_knob_name] = value
+            self._knobs_object[_knob_name] = _knob
+
+
     # PRIVATES
+
+    def _update_dict(self):
+        self.parent.scene[self._sub_class_name] = self._knobs_dict
 
     def _get_positions(self):
         xpos = 0
