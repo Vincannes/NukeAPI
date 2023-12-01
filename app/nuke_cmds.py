@@ -92,4 +92,5 @@ if __name__ == '__main__':
     grade.setInput(0, noop)
     grade.setXYPos(noop.xpos(), noop.ypos() + 50)
     pprint(nuke.scene)
+
     io_file.dict_to_nk_scene(nuke.scene, test_file_out)

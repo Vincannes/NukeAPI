@@ -1,9 +1,33 @@
+This api is for creating nuke scene without using nuke.
+By using same command as nuke api it'll generated a nuke scene .nk.
 
 # API
 ```python
-node = nuke.createNode(NAME)
-node.knob("file").value()
-node.knob("file").setValue("path")
-node.setInput(0, other_node)
-node.setXYPos(x, y)
+nuke = NukeCmds()
+check = nuke.createNode("CheckerBoard")
+grade = nuke.createNode("Grade")
+noop = nuke.createNode("NoOp")
+grade.setInput(0, noop)
+grade.setXYPos(noop.xpos(), noop.ypos() + 50)
+
+```
+
+```
+CheckerBoard {
+ name CheckerBoard1
+ inputs 0
+ xpos 0
+ ypos 0
+}
+NoOp {
+ name NoOp1
+ inputs 0
+ xpos 0
+ ypos 150
+}
+Grade {
+ name Grade1
+ xpos 0
+ ypos 200
+}
 ```
