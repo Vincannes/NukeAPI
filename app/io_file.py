@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # #support	:Trolard Vincent
 # copyright	:Vincannes
+from pprint import pprint
 import regex_wrapper as regw
 
 
@@ -20,6 +21,7 @@ def parse_node_group(node_group):
 def nk_scene_to_dict(file_content):
     node_groups = regw.get_node_with_knobs(file_content)
     parsed_data = {}
+    pprint(node_groups)
     for node_name, node_group_content in node_groups:
         if node_name.strip() in ["define_window_layout_xml"]:
             continue
