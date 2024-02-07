@@ -25,8 +25,8 @@ with open(_aaa, 'r') as file:
 def get_group_nodes(lines):
     pile = []
     group_nodes = {}
-    for num_ligne, ligne in enumerate(lines, start=1):
-        for i, caractere in enumerate(ligne, start=1):
+    for num_ligne, ligne in enumerate(lines, start=0):
+        for i, caractere in enumerate(ligne, start=0):
             if caractere == '{':
                 pile.append(num_ligne)
             elif caractere == '}':
@@ -65,7 +65,7 @@ def parse_string(input_string):
     group_nodes = get_group_nodes(lines)
 
     for num_ligne, end_ligne in sorted(filtrer_ranges(group_nodes).items()):
-        node_class = lines[num_ligne - 1].split(" ")[0]
+        node_class = lines[num_ligne].split(" ")[0]
 
         if node_class not in result.keys():
             result[node_class] = {}
@@ -87,7 +87,7 @@ def knobs_from_data(list_nodes):
     result = {}
     for node_class, data in list_nodes.items():
         for index, lines in data.items():
-            if node_class == "Root":
+            if node_class in ["Root", "define_window_layout_xml"]:
                 result[node_class] = parse_knobs_for_node(lines)
             else:
                 datas = parse_knobs_for_node(lines)
@@ -99,18 +99,66 @@ def knobs_from_data(list_nodes):
 
 def parse_knobs_for_node(lines):
     result = {}
-    for line in lines:
-        match = re.search(r'\{(.*?)\}', line)
-        splited = line.split(' ')
-        sub_key = splited[0]
-        value = line.replace(sub_key + " ", "")
-        print(line, splited)
-        if match:
-            if sub_key not in result.keys():
-                result[sub_key] = []
-            result[sub_key].append(value)
+    prev_knob = None
+    knob_class = None
+    for i, line in enumerate(lines):
+
+        if i == 0:
+            knob_class = line.split(" ")[0]
+            continue
+
+        custom_knobs = re.findall(r"([a-zA-Z0-9]+) \{(.+?)\}", line)
+        space_data = re.match(r"^(\s+)\{(.*)$", line)
+
+        # if same knob with more datas
+        if len(custom_knobs) > 0:
+            knob, value = custom_knobs[0][0], custom_knobs[0][1]
+            if knob not in result.keys():
+                result[knob] = []
+
+            if isinstance(result[knob], str):
+                tmp_val = result[knob]
+                del result[knob]
+                result[knob] = []
+                result[knob].append(tmp_val)
+
+            result[knob].append(value)
+            prev_knob = None
+
+        # if space with some datas
+        elif space_data:
+            if not prev_knob:
+                prev_knob = lines[i - 1].split(" ")[0]
+            if prev_knob not in result.keys():
+                result[prev_knob] = []
+
+            if isinstance(result[prev_knob], str):
+                tmp_val = result[prev_knob]
+                del result[prev_knob]
+                result[prev_knob] = []
+                result[prev_knob].append(tmp_val)
+
+            result[prev_knob].append(line)
+
+        # is space or empty line
+        elif len(re.findall(r"^\s*$", line)) > 0:
+            continue
+
+        # is only { or }
+        elif any(a in line for a in ["{", "}"]):
+            if not "knob" in result.keys():
+                result["knob"] = []
+            result["knob"].append(line)
+
+        # normal knob
         else:
-            result[sub_key] = value
+            try:
+                splited = line.split(' ')
+                knob, value = splited[0], splited[1]
+                result[knob] = value
+                prev_knob = None
+            except:
+                print("ERRROR : ", i, knob_class, " : ", line)
     return result
 
 
@@ -224,6 +272,7 @@ tracks { { 1 31 1 }
 } 
 }
 name Tracker1
+nadddd test
 }
 RotoPaint {
 cliptype bbox
@@ -399,6 +448,12 @@ toolbox {clone {
   { sharpen src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
   { smear src 1 str 1 ssx 1 ssy 1 sf 1 sb 1 }
 } }
+brush_hardness 0.200000003
+source_black_outside true
+name RotoPaint2
+xpos -14008
+ypos -6943
+}
 """
 
 # result_dict = parse_string(file_content)
