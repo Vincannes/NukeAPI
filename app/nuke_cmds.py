@@ -11,9 +11,10 @@ from pprint import pprint
 class NukeCmds(object):
 
     def __init__(self, scene=None):
-        self.scene = scene
         if scene is None:
             self.scene = OrderedDict()
+        else:
+            self.scene = self.scriptOpen(scene)
 
     def createNode(self, name):
         _node = Node(name, self)
@@ -22,7 +23,9 @@ class NukeCmds(object):
 
     def allNodes(self):
         all_nodes = []
+        pprint(self.scene)
         for node, datas in self.scene.items():
+            print(node, datas)
             _node = Node(node, self)
             _node.build_node_from_data(datas)
             all_nodes.append(_node)
@@ -45,6 +48,11 @@ class NukeCmds(object):
         self._set_root(path)
         io_file.dict_to_nk_scene(self.scene, path)
 
+    def scriptOpen(self, path):
+        with open(path, 'r') as file:
+            file_content = file.read()
+        return io_file.nk_scene_to_dict(file_content)
+
     # PRIVATES
 
     def _set_root(self, path):
@@ -56,24 +64,28 @@ class NukeCmds(object):
 
 if __name__ == '__main__':
     test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final_2.nk"
+    path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
 
-    nuke = NukeCmds()
-    read = nuke.createNode("Read")
-    check = nuke.createNode("CheckerBoard")
-    grade = nuke.createNode("Grade")
-    noop = nuke.createNode("NoOp")
-    noop2 = nuke.createNode("NoOp")
+    # nuke = NukeCmds()
+    # read = nuke.createNode("Read")
+    # check = nuke.createNode("CheckerBoard")
+    # grade = nuke.createNode("Grade")
+    # noop = nuke.createNode("NoOp")
+    # noop2 = nuke.createNode("NoOp")
+    #
+    # read.knob("file").setValue("kdkdkdkdkdkd")
+    # grade.setInput(0, noop)
+    # grade.setXYPos(noop.xpos(), noop.ypos() + 50)
+    # noop2.setXYPos(250, 53)
+    #
+    # grade.setSelected(True)
+    # noop2.setSelected(True)
+    #
+    # print("")
+    # print([i.name() for i in nuke.allNodes()])
+    # print([i.name() for i in nuke.selectedNodes()])
+    #
+    # nuke.scriptSaveAs(test_file_out)
 
-    read.knob("file").setValue("kdkdkdkdkdkd")
-    grade.setInput(0, noop)
-    grade.setXYPos(noop.xpos(), noop.ypos() + 50)
-    noop2.setXYPos(250, 53)
-
-    grade.setSelected(True)
-    noop2.setSelected(True)
-
-    print("")
-    print([i.name() for i in nuke.allNodes()])
-    print([i.name() for i in nuke.selectedNodes()])
-
-    nuke.scriptSaveAs(test_file_out)
+    nuke = NukeCmds(path_test_file)
+    pprint(nuke.allNodes())
