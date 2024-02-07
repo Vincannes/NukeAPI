@@ -27,6 +27,19 @@ class SceneParser(object):
     # PRIVATES
 
     def _parse_string(self):
+        """Parse each group of nodes into dict
+        result = {NodeClass: {
+                IndexNode: [string of knobs],
+                IndexNode: [string of knobs]
+            }
+        }
+        return: Dict
+        {NodeClass: {
+                NodeName: {knobs; values},
+                NodeName: {knobs; values},
+            }
+        }
+        """
         result = {}
 
         for num_ligne, end_ligne in sorted(self._group_nodes_filtered.items()):
@@ -53,6 +66,13 @@ class SceneParser(object):
         return self._knobs_from_data(result)
 
     def _knobs_from_data(self, list_nodes):
+        """Parse each Node with the list of his strings
+        {NodeClass: {
+                NodeName: {knobs},
+                NodeName: {knobs},
+            }
+        }
+        """
         result = {}
         for node_class, data in list_nodes.items():
             for index, lines in data.items():
@@ -68,6 +88,12 @@ class SceneParser(object):
         return result
 
     def _parse_knobs_for_node(self, lines):
+        """Parse each line of Node string list
+        {knob: value,
+         knob: [values]
+        }
+        :param lines:
+        """
         result = {}
         prev_knob = None
         knob_class = None
@@ -135,8 +161,8 @@ class SceneParser(object):
         return result
 
     def _filtrer_ranges(self, dictionnaire):
-        """
-        Remove ranges that are already inside a range.
+        """Remove ranges that are already inside a range.
+        [(10, 15), (11, 12), (15, 20)] => [(10, 15), (15, 20)]
         :param dictionnaire:
         :return:
         """
@@ -158,6 +184,10 @@ class SceneParser(object):
         return resultats
 
     def _get_group_nodes(self, lines):
+        """Get group of stacks of { }
+        :param lines:
+        :return: list of tuple
+        """
         pile = []
         group_nodes = {}
         for num_ligne, ligne in enumerate(lines, start=0):
@@ -242,6 +272,7 @@ Reformat {
 addUserKnob {20 studio l Studio}
 inputs 0
 name Reformat2
+zzz qzdqzdqz
 }
 Reformat {
 name Reformat1

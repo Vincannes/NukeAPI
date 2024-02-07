@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 # #support	:Trolard Vincent
 # copyright	:Vincannes
-import re
+import json
 
 from pprint import pprint
-import io_file
+from io_file import SceneParser
 
+path_json = "D:\\Desk\\python\\NukeAPI\\tests\\test.json"
 test_file = "D:\\Desk\\python\\NukeAPI\\tests\\test.nk"
 test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final.nk"
 _aaa = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
@@ -13,153 +14,6 @@ QUANTITY = 1000000000000000000000000000
 with open(_aaa, 'r') as file:
     file_content = file.read()
 
-
-#
-# parsed_data = io_file.nk_scene_to_dict(file_content)
-# pprint(parsed_data)
-# io_file.dict_to_nk_scene(parsed_data, test_file_out)
-
-
-#########################################
-
-def get_group_nodes(lines):
-    pile = []
-    group_nodes = {}
-    for num_ligne, ligne in enumerate(lines, start=0):
-        for i, caractere in enumerate(ligne, start=0):
-            if caractere == '{':
-                pile.append(num_ligne)
-            elif caractere == '}':
-                if pile:
-                    accolade_ouverte = pile.pop()
-                    accolade_fermante = num_ligne
-                    group_nodes[accolade_ouverte] = accolade_fermante
-    return group_nodes
-
-def filtrer_ranges(dictionnaire):
-    """
-    Remove ranges that are already inside a range.
-    :param dictionnaire:
-    :return:
-    """
-    resultats = {}
-    ranges_traites = []
-
-    for cle, valeur in sorted(dictionnaire.items()):
-        inclut = False
-
-        for range_trait in ranges_traites:
-            if cle >= range_trait[0] and valeur <= range_trait[1]:
-                inclut = True
-                break
-
-        if not inclut:
-            resultats[cle] = valeur
-            ranges_traites.append((cle, valeur))
-
-    return resultats
-
-def parse_string(input_string):
-    result = {}
-    lines = input_string.split("\n")
-    group_nodes = get_group_nodes(lines)
-
-    for num_ligne, end_ligne in sorted(filtrer_ranges(group_nodes).items()):
-        node_class = lines[num_ligne].split(" ")[0]
-
-        if node_class not in result.keys():
-            result[node_class] = {}
-            index = 1
-        else:
-            index = max(result[node_class].keys()) + 1
-
-        result[node_class][index] = []
-
-        for i_range in range(num_ligne, end_ligne - 1):
-            ligne = lines[i_range]
-            index = max(result[node_class].keys())
-            result[node_class][index].append(ligne)
-
-    return knobs_from_data(result)
-
-
-def knobs_from_data(list_nodes):
-    result = {}
-    for node_class, data in list_nodes.items():
-        for index, lines in data.items():
-            if node_class in ["Root", "define_window_layout_xml"]:
-                result[node_class] = parse_knobs_for_node(lines)
-            else:
-                datas = parse_knobs_for_node(lines)
-                if not node_class in result.keys():
-                    result[node_class] = {}
-                result[node_class][datas.get('name')] = parse_knobs_for_node(lines)
-    return result
-
-
-def parse_knobs_for_node(lines):
-    result = {}
-    prev_knob = None
-    knob_class = None
-    for i, line in enumerate(lines):
-
-        if i == 0:
-            knob_class = line.split(" ")[0]
-            continue
-
-        custom_knobs = re.findall(r"([a-zA-Z0-9]+) \{(.+?)\}", line)
-        space_data = re.match(r"^(\s+)\{(.*)$", line)
-
-        # if same knob with more datas
-        if len(custom_knobs) > 0:
-            knob, value = custom_knobs[0][0], custom_knobs[0][1]
-            if knob not in result.keys():
-                result[knob] = []
-
-            if isinstance(result[knob], str):
-                tmp_val = result[knob]
-                del result[knob]
-                result[knob] = []
-                result[knob].append(tmp_val)
-
-            result[knob].append(value)
-            prev_knob = None
-
-        # if space with some datas
-        elif space_data:
-            if not prev_knob:
-                prev_knob = lines[i - 1].split(" ")[0]
-            if prev_knob not in result.keys():
-                result[prev_knob] = []
-
-            if isinstance(result[prev_knob], str):
-                tmp_val = result[prev_knob]
-                del result[prev_knob]
-                result[prev_knob] = []
-                result[prev_knob].append(tmp_val)
-
-            result[prev_knob].append(line)
-
-        # is space or empty line
-        elif len(re.findall(r"^\s*$", line)) > 0:
-            continue
-
-        # is only { or }
-        elif any(a in line for a in ["{", "}"]):
-            if not "knob" in result.keys():
-                result["knob"] = []
-            result["knob"].append(line)
-
-        # normal knob
-        else:
-            try:
-                splited = line.split(' ')
-                knob, value = splited[0], splited[1]
-                result[knob] = value
-                prev_knob = None
-            except:
-                print("ERRROR : ", i, knob_class, " : ", line)
-    return result
 
 
 input_string = """
@@ -456,6 +310,13 @@ ypos -6943
 }
 """
 
-# result_dict = parse_string(file_content)
-result_dict = parse_string(input_string)
-pprint(result_dict)
+# scene_parser = SceneParser(file_content)
+# json_object = json.dumps(scene_parser.get_dict(), indent=4)
+
+# with open(path_json, "w") as outfile:
+#     outfile.write(json_object)
+
+with open(path_json, "r") as _file:
+    load_scene = json.load(_file)
+
+pprint(load_scene.get("Read"))
