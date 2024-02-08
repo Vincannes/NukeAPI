@@ -1,6 +1,8 @@
 This api is for creating nuke scene without using nuke.
 By using same command as nuke api it'll generated a nuke scene .nk.
 
+This api also generate un dictionary for each node inside a scene.
+
 # API
 ```python
 nuke = NukeCmds()

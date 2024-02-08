@@ -12,7 +12,8 @@ class SceneParser(object):
         self._scene_lines = scene_text.split("\n")
         self._group_nodes = self._get_group_nodes(self._scene_lines)
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
-        self._orig_dict = self._parse_string()
+        self._orig_dict = self._scene_to_dict()
+        self._dict_scene = self._orig_dict
 
     @property
     def errors(self):
@@ -22,11 +23,19 @@ class SceneParser(object):
         return self._group_nodes if not filtered else self._group_nodes_filtered
 
     def get_dict(self):
-        return self._orig_dict
+        return self._dict_scene
+
+    def update_dict(self, dictionary):
+        self._dict_scene = dictionary
+
+    def dict_to_scene(self, path):
+        return self._dict_to_scene(path)
 
     # PRIVATES
 
-    def _parse_string(self):
+    # Scene to Dict
+
+    def _scene_to_dict(self):
         """Parse each group of nodes into dict
         result = {NodeClass: {
                 IndexNode: [string of knobs],
@@ -160,7 +169,7 @@ class SceneParser(object):
 
         return result
 
-    def _filtrer_ranges(self, dictionnaire):
+    def _filtrer_ranges(self, dictionnary):
         """Remove ranges that are already inside a range.
         [(10, 15), (11, 12), (15, 20)] => [(10, 15), (15, 20)]
         :param dictionnaire:
@@ -169,7 +178,7 @@ class SceneParser(object):
         resultats = {}
         ranges_traites = []
 
-        for cle, valeur in sorted(dictionnaire.items()):
+        for cle, valeur in sorted(dictionnary.items()):
             inclut = False
 
             for range_trait in ranges_traites:
@@ -202,6 +211,38 @@ class SceneParser(object):
                 elif "version" in ligne:
                     group_nodes[num_ligne] = num_ligne
         return group_nodes
+
+    # Dict to Scene
+
+    def _dict_to_scene(self, file_out):
+        with open(file_out, 'w') as file:
+            output = ""
+            output += f"version {self._dict_scene.get('version')}\n"
+
+            output += "Root {"
+            for root_knob, value in self._dict_scene.get("Root").items():
+                output += f"{root_knob} {value}\n"
+
+            output += "}\n"
+
+            for node_class, nodes in self._dict_scene.items():
+                if node_class in ["version", "define_window_layout_xml", "Root"]:
+                    continue
+                for node_name, knobs_data in nodes.items():
+                    output += node_class + " {\n"
+
+                    for knob, value in knobs_data.items():
+                        if isinstance(value, list):
+                            for i, val in enumerate(value):
+                                if i == 0:
+                                    val = knob + " " + val
+                                output += val +" \n"
+                        else:
+                            output += f"{knob} {value}\n"
+                    output += "}\n"
+
+            file.write(output)
+        return output
 
 
 if __name__ == "__main__":
