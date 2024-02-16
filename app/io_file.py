@@ -365,7 +365,6 @@ class SceneParser(object):
                     if not node_name in _nodes_already_use:
                         _nodes_already_use.append(node_name)
                         s_input_node = node_name
-                        print(node, node_name)
                         break
 
             if not node in _inputs_nodes.keys():
