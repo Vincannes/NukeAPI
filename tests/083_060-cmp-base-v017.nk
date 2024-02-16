@@ -1,94 +1,536 @@
-#! /s/apps/packages/cg/nuke/13.2.v8/platform-linux/libnuke-13.2.8.so -nx
-#write_info out file:"/s/prods/sharks/sequence/083/083_060/cmp/image/wip/083_060-cmp-base-nk-out-v016-aces-exr/083_060-cmp-base-nk-out-v016-aces.%04d.exr" format:"3840 2160 1" chans:":rgba.red:rgba.green:rgba.blue:" framerange:"991 1062" fps:"0" colorspace:"aces" datatype:"16 bit half" transfer:"unknown" views:"main" colorManagement:"OCIO"
-version 13.2 v8
-define_window_layout_xml {<?xml version="1.0" encoding="UTF-8"?>
-<layout version="1.0">
-    <window x="0" y="31" w="1920" h="1025" maximized="1" screen="1">
-        <splitter orientation="1">
-            <split size="40"/>
-            <dock id="" hideTitles="1" activePageId="Toolbar.1">
-                <page id="Toolbar.1"/>
-            </dock>
-            <split size="1257" stretch="1"/>
-            <splitter orientation="2">
-                <split size="986"/>
-                <dock id="" activePageId="DAG.1">
-                    <page id="DAG.1"/>
-                    <page id="Curve Editor.1"/>
-                    <page id="DopeSheet.1"/>
-                </dock>
-            </splitter>
-            <split size="615"/>
-            <splitter orientation="2">
-                <split size="889"/>
-                <dock id="" activePageId="Properties.1">
-                    <page id="Properties.1"/>
-                    <page id="uk.co.thefoundry.backgroundrenderview.1"/>
-                </dock>
-                <split size="93"/>
-                <dock id="" activePageId="Pixel Analyzer.1">
-                    <page id="Pixel Analyzer.1"/>
-                </dock>
-            </splitter>
-        </splitter>
-    </window>
-    <window x="1920" y="0" w="1920" h="1176" maximized="1" screen="0">
-        <splitter orientation="1">
-            <split size="958"/>
-            <dock id="" activePageId="Viewer.1">
-                <page id="Viewer.1"/>
-            </dock>
-            <split size="958"/>
-            <dock id="" activePageId="Viewer.2">
-                <page id="Viewer.2"/>
-            </dock>
-        </splitter>
-    </window>
-</layout>
+set cut_paste_input [stack 0]
+version 13.2 v5
+push $cut_paste_input
+Viewer {
+ frame 1
+ frame_range 1-100
+ monitorOutOutputTransform rec709
+ name Viewer1
+ selected true
+ xpos 125
+ ypos 1201
 }
-Root {
-inputs 0
-name /s/prods/sharks/sequence/083/083_060/cmp/nuke/wip/083_060-cmp-base-v016.nk
-frame 1029
-first_frame 991
-last_frame 1062
-lock_range true
-format "3840 2160 0 0 3840 2160 1 sharks"
-proxy_type scale
-proxy_format "1024 778 0 0 1024 778 1 1K_Super_35(full-ap)"
-colorManagement OCIO
-defaultViewerLUT "OCIO LUTs"
-workingSpaceLUT scene_linear
-monitorLut "monitors/Gamma 2.4 - Rec.709"
-monitorOutLUT "Gamma 2.4 - Rec.709 (monitors)"
-int8Lut matte_paint
-int16Lut texture_paint
-logLut compositing_log
-floatLut scene_linear
-addUserKnob {20 mariTab l Mari}
-addUserKnob {26 cmdStatus l "listen status" t "The status of Nuke's command port" T <b>Disabled</b>}
-addUserKnob {26 sendStatus l "send status" t "The status of Nuke's connection to Mari" T <b>Inactive</b>}
-addUserKnob {3 socketPort l "nuke command port" t "Port to listen on. Make sure this matches the command port set in Mari's \"Nuke\" Palette."}
-socketPort 50107
-addUserKnob {6 enableSocket l enabled -STARTLINE}
-addUserKnob {26 divider l "" +STARTLINE}
-addUserKnob {20 advanced n 1}
-advanced 0
-addUserKnob {3 portRange l "port range" t "If the main specified command port is unavailable, Nuke will try using the next port number, and continue until successful or the indicated number of ports have been tried."}
-portRange 200
-addUserKnob {4 enablePortRange l "" t "Indicates whether to use a range of ports up to the given number, or to use only the single one specified." -STARTLINE M {"use range" "single port only"}}
-addUserKnob {6 localhostOnly l "local host only" t "This determines whether the Mari bridge server will listen for connections from any machine, or from \"localhost\" (the local machine) only.<p>Only allowing connections from localhost is more secure, but will prevent you from using the Nuke&lt;&gt;Mari workflow across the network." +STARTLINE}
-addUserKnob {1 hostName l "mari host" t "The machine name or IP address that Mari is running on.\nLeave empty if both Mari and Nuke are running on the same machine."}
-hostName localhost
-addUserKnob {3 socketPortSend l port t "Port that Mari is listening to. Make sure this matches the command port set in Mari's preferences." -STARTLINE}
-socketPortSend 6100
-addUserKnob {2 mariDataDir l "mari data dir" t "Path to directory that will hold transient data to be sent to Mari (exrs, objs and fbx files). If this is left empty, a \"mari\" directory will be created in the nk file's location"}
-mariDataDir "\[getenv NUKE_TEMP_DIR]/mariData"
-addUserKnob {2 mariLocation l "mari launch path" t "The path to launch Mari from.<br>This can also be set using the <b>MARI_INSTALL_PATH</b> environment variable."}
-addUserKnob {20 endGroup n -1}
-addUserKnob {1 timeline_write_node l "Timeline write Node" t "The Write node name  which should be used when showing the comp on the timeline"}
-timeline_write_node out
-addUserKnob {20 studio l Studio}
-addUserKnob {1 timeline_write_node l "Timeline write Node" t "The Write node name  which should be used when showing the comp on the timeline"}
-timeline_write_node out
+Dot {
+ inputs 0
+ name Dot9
+ selected true
+ xpos -104
+ ypos -130
+}
+set Ne6132000 [stack 0]
+AddChannels {
+ channels alpha
+ name AddChannels2
+ selected true
+ xpos -478
+ ypos 1078
+}
+Dot {
+ name Dot3
+ selected true
+ xpos -444
+ ypos 1134
+}
+Dot {
+ inputs 0
+ name ggg
+ selected true
+ xpos 174
+ ypos 11
+}
+set Ne6132c00 [stack 0]
+AddChannels {
+ channels alpha
+ name AddChannels1
+ selected true
+ xpos -548
+ ypos 988
+}
+Dot {
+ name Dot2
+ selected true
+ xpos -514
+ ypos 1033
+}
+push $Ne6132000
+FilterErode {
+ channels alpha
+ size {{invertMatte==0?erodeMatte.w:-erodeMatte.w i} {invertMatte==0?erodeMatte.h:-erodeMatte.h i}}
+ name FilterErode1
+ selected true
+ xpos -138
+ ypos -81
+}
+Invert {
+ channels alpha
+ mix {{invertMatte i}}
+ name Invert2
+ selected true
+ xpos -138
+ ypos -36
+}
+Grade {
+ channels alpha
+ blackpoint {{"clamp(expandMatte, 0, 1)" i}}
+ whitepoint {{"clamp(1+expandMatte, 0, 1)" i}}
+ white_clamp true
+ name Grade1
+ selected true
+ xpos -138
+ ypos 22
+}
+Grade {
+ channels alpha
+ whitepoint 0.5
+ black_clamp false
+ white_clamp true
+ name Grade6
+ selected true
+ xpos -138
+ ypos 182
+}
+Dot {
+ name Dot1
+ selected true
+ xpos -104
+ ypos 239
+}
+set Ne615a800 [stack 0]
+push $Ne6132c00
+AddChannels {
+ channels alpha
+ name AddChannels3
+ selected true
+ xpos 209
+ ypos 74
+}
+push $Ne6132c00
+Shuffle {
+ alpha white
+ name Shuffle1
+ selected true
+ xpos -58
+ ypos 58
+}
+Crop {
+ box {{InputRGB.bbox.x x1001 542} {InputRGB.bbox.y} {InputRGB.bbox.r} {InputRGB.bbox.t}}
+ name Crop3
+ selected true
+ xpos 72
+ ypos 112
+}
+Switch {
+ inputs 2
+ which {{rgbIsPremult i}}
+ name Switch1
+ selected true
+ xpos 72
+ ypos 157
+}
+Dot {
+ name Dot5
+ selected true
+ xpos 106
+ ypos 201
+}
+set Ne615bc00 [stack 0]
+Merge2 {
+ inputs 2
+ operation stencil
+ bbox intersection
+ name Merge1
+ selected true
+ xpos 72
+ ypos 235
+}
+push $Ne615a800
+Dot {
+ name Dot4
+ selected true
+ xpos -104
+ ypos 274
+}
+push $Ne615bc00
+Dot {
+ name Dot6
+ selected true
+ xpos 5
+ ypos 201
+}
+Merge2 {
+ inputs 2
+ operation stencil
+ bbox B
+ name Merge3
+ selected true
+ xpos -29
+ ypos 269
+}
+Dot {
+ name Dot7
+ selected true
+ xpos 5
+ ypos 335
+}
+Switch {
+ inputs 2
+ which {{invertMatte i}}
+ name Switch2
+ selected true
+ xpos 72
+ ypos 330
+}
+set Ne618b400 [stack 0]
+push $Ne618b400
+Blur {
+ channels rgba
+ size 5
+ name Blur1
+ selected true
+ xpos 395
+ ypos 501
+}
+Unpremult {
+ name Unpremult2
+ selected true
+ xpos 395
+ ypos 545
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression1
+ selected true
+ xpos 395
+ ypos 589
+}
+FilterErode {
+ channels alpha
+ size 2.5
+ filter gaussian
+ name FilterErode2
+ selected true
+ xpos 395
+ ypos 633
+}
+Premult {
+ name Premult1
+ selected true
+ xpos 395
+ ypos 691
+}
+Merge2 {
+ inputs 2
+ name Merge2
+ selected true
+ xpos 395
+ ypos 735
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 10
+ name Blur2
+ selected true
+ xpos 732
+ ypos 356
+}
+Unpremult {
+ name Unpremult3
+ selected true
+ xpos 732
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression2
+ selected true
+ xpos 732
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 5
+ filter gaussian
+ name FilterErode3
+ selected true
+ xpos 732
+ ypos 434
+}
+Premult {
+ name Premult2
+ selected true
+ xpos 732
+ ypos 460
+}
+Merge2 {
+ inputs 2
+ name Merge4
+ selected true
+ xpos 732
+ ypos 735
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 15
+ name Blur3
+ selected true
+ xpos 512
+ ypos 356
+}
+Unpremult {
+ name Unpremult4
+ selected true
+ xpos 512
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression3
+ selected true
+ xpos 512
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 7.5
+ filter gaussian
+ name FilterErode4
+ selected true
+ xpos 512
+ ypos 434
+}
+Premult {
+ name Premult3
+ selected true
+ xpos 512
+ ypos 761
+}
+Merge2 {
+ inputs 2
+ name Merge5
+ selected true
+ xpos 732
+ ypos 761
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 20
+ name Blur4
+ selected true
+ xpos 402
+ ypos 356
+}
+Unpremult {
+ name Unpremult5
+ selected true
+ xpos 402
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression4
+ selected true
+ xpos 402
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 10
+ filter gaussian
+ name FilterErode5
+ selected true
+ xpos 402
+ ypos 434
+}
+Premult {
+ name Premult4
+ selected true
+ xpos 402
+ ypos 460
+}
+Merge2 {
+ inputs 2
+ name Merge6
+ selected true
+ xpos 732
+ ypos 787
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 25
+ name Blur5
+ selected true
+ xpos 292
+ ypos 356
+}
+Unpremult {
+ name Unpremult6
+ selected true
+ xpos 292
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression5
+ selected true
+ xpos 292
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 12.5
+ filter gaussian
+ name FilterErode6
+ selected true
+ xpos 292
+ ypos 434
+}
+Premult {
+ name Premult5
+ selected true
+ xpos 292
+ ypos 813
+}
+Merge2 {
+ inputs 2
+ name Merge7
+ selected true
+ xpos 732
+ ypos 813
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 30
+ name Blur6
+ selected true
+ xpos 182
+ ypos 356
+}
+Unpremult {
+ name Unpremult7
+ selected true
+ xpos 182
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression6
+ selected true
+ xpos 182
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 15
+ filter gaussian
+ name FilterErode7
+ selected true
+ xpos 182
+ ypos 434
+}
+Premult {
+ name Premult6
+ selected true
+ xpos 182
+ ypos 839
+}
+Merge2 {
+ inputs 2
+ name Merge8
+ selected true
+ xpos 732
+ ypos 839
+}
+push $Ne618b400
+Blur {
+ channels rgba
+ size 13.125
+ name Blur7
+ selected true
+ xpos 72
+ ypos 356
+}
+Unpremult {
+ name Unpremult8
+ selected true
+ xpos 72
+ ypos 382
+}
+Expression {
+ expr3 a==0?0:1
+ name Expression7
+ selected true
+ xpos 72
+ ypos 408
+}
+FilterErode {
+ channels alpha
+ size 6.5625
+ filter gaussian
+ name FilterErode8
+ selected true
+ xpos 72
+ ypos 434
+}
+Premult {
+ name Premult7
+ selected true
+ xpos 72
+ ypos 865
+}
+Merge2 {
+ inputs 2
+ name Merge9
+ selected true
+ xpos 732
+ ypos 865
+}
+Unpremult {
+ name Unpremult1
+ selected true
+ xpos -672
+ ypos 977
+}
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ mix {{matteOutput==0?1:0}}
+ name Copy2
+ selected true
+ xpos -672
+ ypos 1023
+}
+Copy {
+ inputs 2
+ from0 rgba.alpha
+ to0 rgba.alpha
+ mix {{matteOutput==1?1:0}}
+ name Copy1
+ selected true
+ xpos -672
+ ypos 1124
+}
+Expression {
+ expr3 a<=0.000001?0:1
+ mix {{matteOutput==3?1:0}}
+ name Expression8
+ selected true
+ xpos -672
+ ypos 1298
+}
+push $Ne6132c00
+ShuffleCopy {
+ inputs 2
+ red red
+ green green
+ blue blue
+ name ShuffleCopy1
+ selected true
+ xpos -347
+ ypos 1298
 }
