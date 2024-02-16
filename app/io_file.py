@@ -170,14 +170,13 @@ class SceneParser(object):
             else:
                 try:
                     splited = line.split(' ')
-                    knob, value = splited[0], splited[1]
+                    knob, value = splited[1], splited[2]
                     result[knob] = value
                     prev_knob = None
                 except:
                     if knob_class not in self._errors.keys():
                         self._errors[knob_class] = []
                     self._errors[knob_class].append((i, line))
-
         return result
 
     def _filtrer_ranges(self, dictionnary):

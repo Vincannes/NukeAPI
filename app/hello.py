@@ -323,7 +323,7 @@ scene = SceneParser(file_content)
 
 pprint(scene.get_dict())
 # pprint(scene.get_dict().get("input_nodes"))
-# pprint(scene._get_all_inputs())
+pprint(scene.get_inputs())
 # pprint(scene.groups(True))
 # scene.dict_to_scene(test_file)
 # pprint(load_scene.get("Tracker4"))
