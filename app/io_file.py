@@ -15,6 +15,7 @@ class SceneParser(object):
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
         self._orig_dict = self._scene_to_dict()
         self._dict_scene = self._orig_dict
+        self._inputs_nodes = self._get_all_inputs()
 
     @property
     def errors(self):
@@ -25,6 +26,9 @@ class SceneParser(object):
 
     def get_dict(self):
         return self._dict_scene
+
+    def get_inputs(self):
+        return self._inputs_nodes
 
     def update_dict(self, dictionary):
         self._dict_scene = dictionary
@@ -79,7 +83,6 @@ class SceneParser(object):
                 result_node_list[node_class][index].append(ligne)
 
         result = self._knobs_from_data(result_node_list)
-        # result["input_nodes"] = self._get_all_inputs(result)
         return result
 
     def _knobs_from_data(self, list_nodes):

@@ -321,9 +321,9 @@ with open(path_json, "r") as _file:
 scene = SceneParser(file_content)
 # scene.update_dict(load_scene)
 
-# pprint(scene.get_dict())
+pprint(scene.get_dict())
 # pprint(scene.get_dict().get("input_nodes"))
-pprint(scene._get_all_inputs())
+# pprint(scene._get_all_inputs())
 # pprint(scene.groups(True))
 # scene.dict_to_scene(test_file)
 # pprint(load_scene.get("Tracker4"))
