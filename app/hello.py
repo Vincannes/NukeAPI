@@ -9,7 +9,7 @@ from io_file import SceneParser
 path_json = "D:\\Desk\\python\\NukeAPI\\tests\\test.json"
 test_file = "D:\\Desk\\python\\NukeAPI\\tests\\test.nk"
 test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final.nk"
-_aaa = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v017.nk"
+_aaa = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
 
 with open(_aaa, 'r') as file:
     file_content = file.read()
@@ -321,7 +321,7 @@ with open(path_json, "r") as _file:
 scene = SceneParser(file_content)
 # scene.update_dict(load_scene)
 
-pprint(scene.get_dict())
+# pprint(scene.get_dict())
 # pprint(scene.get_dict().get("input_nodes"))
 pprint(scene.get_inputs())
 # pprint(scene.groups(True))

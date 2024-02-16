@@ -241,6 +241,10 @@ class SceneParser(object):
 
         cles_in = list(self._group_nodes_filtered.keys())
         cles_out = list(self._group_nodes_filtered.values())
+
+        if in_range and not in_range in cles_in or out_range and out_range not in cles_out:
+            return None, None
+
         index_cle = cles_in.index(in_range) if in_range else cles_out.index(out_range-1)
 
         if out_range:
@@ -285,6 +289,8 @@ class SceneParser(object):
                 node_object = ligne.split(" ")[1]
                 if node_object == "cut_paste_input":
                     continue
+                if self._scene_lines[i-1] == "end_group":
+                    i += 1
                 node_name = self._get_name(out_range=i)
                 _inputs_nodes[node_name] = {
                     "name": node_name,
@@ -297,7 +303,12 @@ class SceneParser(object):
                 if not _object_node.startswith("$"):
                     continue
                 node_object_input = _object_node.replace("$", "")
-                index_class = i + 2 if self._scene_lines[i + 1].startswith("push") else i + 1
+
+                index_class = i
+                while True:
+                    if not self._scene_lines[index_class].startswith("push"):
+                        break
+                    index_class += 1
                 node_name = self._get_name(in_range=index_class)
 
                 node_name_from_object = [a for a in _inputs_nodes.values() if a.get("object") == node_object_input]
