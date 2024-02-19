@@ -10,11 +10,9 @@ path_json = "D:\\Desk\\python\\NukeAPI\\tests\\test.json"
 test_file = "D:\\Desk\\python\\NukeAPI\\tests\\test.nk"
 test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final.nk"
 _aaa = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
-QUANTITY = 1000000000000000000000000000
+
 with open(_aaa, 'r') as file:
     file_content = file.read()
-
-
 
 input_string = """
 #! /s/apps/packages/cg/nuke/13.2.v8/platform-linux/libnuke-13.2.8.so -nx
@@ -319,4 +317,13 @@ ypos -6943
 with open(path_json, "r") as _file:
     load_scene = json.load(_file)
 
-pprint(load_scene.get("Read"))
+# scene = SceneParser(input_string)
+scene = SceneParser(file_content)
+# scene.update_dict(load_scene)
+
+# pprint(scene.get_dict())
+# pprint(scene.get_dict().get("input_nodes"))
+pprint(scene.get_inputs())
+# pprint(scene.groups(True))
+# scene.dict_to_scene(test_file)
+# pprint(load_scene.get("Tracker4"))
