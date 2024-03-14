@@ -4,6 +4,20 @@ By using same command as nuke api it'll generated a nuke scene .nk.
 This api also generate un dictionary for each node inside a scene.
 
 # API
+
+### Scene to Dict
+main.py {scene Nuke} {json if want to save the dictionnary}
+```shell
+python NukeAPI/app/main.py scene_to_parse.nk None
+python NukeAPI/app/main.py scene_to_parse.nk path_json_save.json
+```
+
+```python
+from app.io_file import SceneParser
+SceneParser(path_scene.nk).get_dict()
+```
+
+### Create Scene 
 ```python
 nuke = NukeCmds()
 read = nuke.createNode("Read")
