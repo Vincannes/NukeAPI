@@ -4,11 +4,9 @@ from io_file import SceneParser
 
 
 def run(path, export_path=None):
-    with open(path, "r") as path_file:
-        file_content = path_file.read()
 
-    scene = SceneParser(file_content)
-    # pprint(scene.get_dict())
+    scene = SceneParser(path)
+    pprint(scene.get_dict())
 
     if export_path:
         print(export_path)

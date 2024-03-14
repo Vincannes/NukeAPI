@@ -8,8 +8,11 @@ from pprint import pprint
 
 class SceneParser(object):
 
-    def __init__(self, scene_text):
+    def __init__(self, scene_path):
         self._errors = {}
+        with open(scene_path, "r") as path_file:
+            scene_text = path_file.read()
+            
         self._scene_lines = scene_text.split("\n")
         self._group_nodes = self._get_group_nodes(self._scene_lines)
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
@@ -393,11 +396,11 @@ class SceneParser(object):
     def _dict_to_scene(self, file_out):
         with open(file_out, 'w') as file:
             output = ""
-            output += f"version {self._dict_scene.get('version')}\n"
+            output += "version {}\n".format(self._dict_scene.get('version'))
 
             output += "Root {"
             for root_knob, value in self._dict_scene.get("Root").items():
-                output += f"{root_knob} {value}\n"
+                output += "{} {}\n".format(root_knob, value)
 
             output += "}\n"
 
@@ -414,7 +417,7 @@ class SceneParser(object):
                                     val = knob + " " + val
                                 output += val +" \n"
                         else:
-                            output += f"{knob} {value}\n"
+                            output += "{} {}\n".format(knob, value)
                     output += "}\n"
 
             file.write(output)
