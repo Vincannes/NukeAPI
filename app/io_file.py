@@ -12,7 +12,7 @@ class SceneParser(object):
         self._errors = {}
         with open(scene_path, "r") as path_file:
             scene_text = path_file.read()
-            
+
         self._scene_lines = scene_text.split("\n")
         self._group_nodes = self._get_group_nodes(self._scene_lines)
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
@@ -173,7 +173,7 @@ class SceneParser(object):
             else:
                 try:
                     splited = line.split(' ')
-                    knob, value = splited[1], splited[2]
+                    knob, value = splited[0], splited[-1]
                     result[knob] = value
                     prev_knob = None
                 except:
