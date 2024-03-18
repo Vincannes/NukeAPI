@@ -2,15 +2,24 @@
 # #support	:Trolard Vincent
 # copyright	:Vincannes
 import os
+import re
 import json
-from knob import Knob
-import regex_wrapper as regw
+from pprint import pprint
 from collections import OrderedDict
+
+from knob import Knob
 
 NODES_KNOBS = {}
 path_node_knobs = os.path.join(os.path.dirname(__file__), "nodes_knobs.json")
 with open(path_node_knobs, 'r') as json_path:
     NODES_KNOBS = json.load(json_path)
+
+
+def get_int_from_string(name):
+    match = re.search(r'(\d+)', name)
+    if not re.search(r'(\d+)', name):
+        return 0
+    return int(match.group(1))
 
 
 class Node(object):
@@ -92,6 +101,10 @@ class Node(object):
             self._knobs_dict[_knob_name] = value
             self._knobs_object[_knob_name] = _knob
 
+    def __repr__(self):
+        return "{} {} : {}".format(
+            self._class_name, self._knobs_dict.get("name"), ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
+        )
 
     # PRIVATES
 
@@ -101,11 +114,14 @@ class Node(object):
     def _get_positions(self):
         xpos = 0
         ypos = 0
-        for node, data in self.parent.scene.items():
-            _xpos = data.get("xpos", 0)
-            _ypos = data.get("ypos", 0)
-            xpos += _xpos + self.X_OFFSET
-            ypos += _ypos + self.Y_OFFSET
+        for node_class, data in self.parent.scene.items():
+            if node_class in ["version", "define_window_layout_xml", "Root"]:
+                continue
+            for node, knobs in data.items():
+                _xpos = knobs.get("xpos", 0)
+                _ypos = knobs.get("ypos", 0)
+                xpos += int(_xpos) + self.X_OFFSET
+                ypos += int(_ypos) + self.Y_OFFSET
         return xpos, ypos
 
     def _get_index(self):
@@ -113,19 +129,19 @@ class Node(object):
 
     def _generate_name(self):
         names_iter = [0]
-        for n in self._get_node_from_dict():
-            _name = n.get("name")
-            _int = regw.get_int_from_string(_name)
+        for _name in self._get_node_from_dict():
+            _int = get_int_from_string(_name)
             names_iter.append(_int)
         index_name = max(names_iter) + 1
         return self._class_name + str(index_name)
 
     def _get_node_from_dict(self):
         similars_node = []
-        for node_class, node in self.parent.scene.items():
+        for node_class, node_data in self.parent.scene.items():
             if self._class_name not in node_class:
                 continue
-            similars_node.append(node)
+            for node, a in node_data.items():
+                similars_node.append(node)
         return similars_node
 
     def _set_default_knobs(self):

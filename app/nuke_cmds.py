@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # #support	:Trolard Vincent
 # copyright	:Vincannes
-import io_file
 from node import Node
+from io_file import SceneDict
 from collections import OrderedDict
 
 from pprint import pprint
@@ -12,23 +12,30 @@ class NukeCmds(object):
 
     def __init__(self, scene=None):
         if scene is None:
-            self.scene = OrderedDict()
+            self._scene = None
+            self._dict_scene = OrderedDict()
         else:
-            self.scene = self.scriptOpen(scene)
+            self._scene = self.scriptOpen(scene)
+            self._dict_scene = self._scene.get_dict()
+
+    @property
+    def scene(self):
+        return self._dict_scene
 
     def createNode(self, name):
         _node = Node(name, self)
-        self.scene[_node.subClass()] = _node.get_node_dict()
+        self._dict_scene[_node.subClass()] = _node.get_node_dict()
         return _node
 
     def allNodes(self):
         all_nodes = []
-        pprint(self.scene)
-        for node, datas in self.scene.items():
-            print(node, datas)
-            _node = Node(node, self)
-            _node.build_node_from_data(datas)
-            all_nodes.append(_node)
+        for node_class, reads in self._dict_scene.items():
+            if node_class in ["version", "Root", "define_window_layout_xml"]:
+                continue
+            for node_name, knobs in reads.items():
+                _node = Node(node_class, self)
+                _node.build_node_from_data(knobs)
+                all_nodes.append(_node)
         return all_nodes
 
     def selectedNode(self):
@@ -46,25 +53,26 @@ class NukeCmds(object):
 
     def scriptSaveAs(self, path):
         self._set_root(path)
-        io_file.dict_to_nk_scene(self.scene, path)
+        io_file.dict_to_nk_scene(self._dict_scene, path)
 
     def scriptOpen(self, path):
-        with open(path, 'r') as file:
-            file_content = file.read()
-        return io_file.nk_scene_to_dict(file_content)
+        return SceneDict(path)
 
     # PRIVATES
 
     def _set_root(self, path):
         _root_node = Node("Root", self)
         _root_node.knob("name").setValue(path)
-        self.scene[_root_node.subClass()] = _root_node.get_node_dict()
-        self.scene.move_to_end(_root_node.subClass(), last=False)
+        self._dict_scene[_root_node.subClass()] = _root_node.get_node_dict()
+        self._dict_scene.move_to_end(_root_node.subClass(), last=False)
 
+
+nuke = NukeCmds()
 
 if __name__ == '__main__':
     test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final_2.nk"
     path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
+    # path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v017.nk"
 
     # nuke = NukeCmds()
     # read = nuke.createNode("Read")
