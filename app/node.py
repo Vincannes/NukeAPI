@@ -101,7 +101,7 @@ class Node(object):
             self._knobs_dict[_knob_name] = value
             self._knobs_object[_knob_name] = _knob
 
-    def __repr__(self):
+    def __str__(self):
         return "{} {} : {}".format(
             self._class_name, self._knobs_dict.get("name"), ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
         )
@@ -114,10 +114,10 @@ class Node(object):
     def _get_positions(self):
         xpos = 0
         ypos = 0
-        for node_class, data in self.parent.scene.items():
-            if node_class in ["version", "define_window_layout_xml", "Root"]:
+        for node_class, nodes in self.parent.scene.items():
+            if node_class in self.parent.SKIP_NODES_TYPE:
                 continue
-            for node, knobs in data.items():
+            for node, knobs in nodes.items():
                 _xpos = knobs.get("xpos", 0)
                 _ypos = knobs.get("ypos", 0)
                 xpos += int(_xpos) + self.X_OFFSET

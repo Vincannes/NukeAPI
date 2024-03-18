@@ -16,9 +16,9 @@ class SceneDict(object):
         self._scene_lines = scene_text.split("\n")
         self._group_nodes = self._get_group_nodes(self._scene_lines)
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
+        self._inputs_nodes = self._get_all_inputs()
         self._orig_dict = self._scene_to_dict()
         self._dict_scene = self._orig_dict
-        self._inputs_nodes = self._get_all_inputs()
 
     @property
     def errors(self):
@@ -110,18 +110,28 @@ class SceneDict(object):
                 elif node_class == "version":
                     result[node_class] = lines.split(" ", 1)[-1]
                 elif node_class == "add_layer":
-                    layer_node = self._get_next_nodes_from_line(index)
-                    layer = {"value": lines.replace("{", "").replace("}", "")}
+                    layer_node = self._get_next_node_from_line(index)
+                    layer = lines.replace("{", "").replace("}", "")
                     if node_class not in result.keys():
                         result[node_class] = {}
                     if not layer_node in result[node_class].keys():
                         result[node_class][layer_node] = []
                     result[node_class][layer_node].append(layer)
+                elif node_class == "clone":
+                    node_object = lines[0].split(" ")[1].replace("$", "")
+                    node_name = next(
+                        (cle for cle, _data in self._inputs_nodes.items() if "object" in _data and _data.get("object") == node_object)
+                        , None
+                    )
+                    _data = self._parse_knobs_for_node(lines)
+                    if node_class not in result.keys():
+                        result[node_class] = {}
+                    result[node_class][node_name] = _data
                 else:
                     datas = self._parse_knobs_for_node(lines)
                     if not node_class in result.keys():
                         result[node_class] = {}
-                    result[node_class][datas.get('name')] = self._parse_knobs_for_node(lines)
+                    result[node_class][datas.get('name')] = datas
         return result
 
     def _parse_knobs_for_node(self, lines):
@@ -187,7 +197,7 @@ class SceneDict(object):
             else:
                 try:
                     splited = line.split(' ')
-                    knob, value = splited[0], splited[-1]
+                    knob, value = splited[0], " ".join(splited[1:]).replace('"', "")
                     result[knob] = value
                     prev_knob = None
                 except:
@@ -246,12 +256,13 @@ class SceneDict(object):
         if out_range is not None:
             for _in, _out in self._group_nodes_filtered.items():
                 if _in <= out_range <= _out:
-                    out_range = _out + 1
-
+                    in_range = _in
+                    out_range = _out
         if in_range is not None:
             for _in, _out in self._group_nodes_filtered.items():
                 if _in <= in_range <= _out:
                     in_range = _in
+                    out_range = _out
 
         if not in_range and not out_range:
             return None, None
@@ -259,7 +270,7 @@ class SceneDict(object):
         cles_in = list(self._group_nodes_filtered.keys())
         cles_out = list(self._group_nodes_filtered.values())
 
-        if in_range and not in_range in cles_in or out_range and out_range not in cles_out:
+        if in_range and in_range not in cles_in or out_range and out_range not in cles_out:
             return None, None
 
         index_cle = cles_in.index(in_range) if in_range else cles_out.index(out_range-1)
@@ -272,9 +283,9 @@ class SceneDict(object):
         return in_range, out_range
 
     def _get_name(self, in_range=None, out_range=None):
-
         name = "NoneName"
         in_range, out_range = self._get_group_from_ligne(in_range, out_range)
+
         if in_range is None and out_range is None:
             return name
 
@@ -308,7 +319,8 @@ class SceneDict(object):
                     continue
                 if self._scene_lines[i-1] == "end_group":
                     i += 1
-                node_name = self._get_name(out_range=i)
+
+                node_name = self._get_name(out_range=i-1)
                 _inputs_nodes[node_name] = {
                     "name": node_name,
                     "object": node_object,
@@ -405,8 +417,7 @@ class SceneDict(object):
 
         return _inputs_nodes
 
-    def _get_next_nodes_from_line(self, line):
-        node_name = None
+    def _get_next_node_from_line(self, line):
         while True:
             curr_line = self._scene_lines[line]
             if any([True for a in ["add_layer"] if a in curr_line]):
@@ -452,6 +463,7 @@ class SceneDict(object):
 if __name__ == "__main__":
     path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
     result_dict = SceneDict(path_test_file)
-    pprint(result_dict.get_dict().get("add_layer"))
+    pprint(result_dict.get_dict())
     # pprint(result_dict.groups())
+    # pprint(result_dict.get_inputs())
     # pprint(result_dict.groups(False))

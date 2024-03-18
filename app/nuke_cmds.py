@@ -9,14 +9,17 @@ from pprint import pprint
 
 
 class NukeCmds(object):
+    SKIP_NODES_TYPE = ["version", "Root", "define_window_layout_xml", "add_layer"]
 
     def __init__(self, scene=None):
         if scene is None:
             self._scene = None
             self._dict_scene = OrderedDict()
+            self._all_nodes = []
         else:
             self._scene = self.scriptOpen(scene)
             self._dict_scene = self._scene.get_dict()
+            self._all_nodes = self.allNodes()
 
     @property
     def scene(self):
@@ -27,10 +30,13 @@ class NukeCmds(object):
         self._dict_scene[_node.subClass()] = _node.get_node_dict()
         return _node
 
+    def toNode(self, node_name):
+        return next((node for node in self._all_nodes if node_name == node.name()), None)
+
     def allNodes(self):
         all_nodes = []
         for node_class, reads in self._dict_scene.items():
-            if node_class in ["version", "Root", "define_window_layout_xml"]:
+            if node_class in self.SKIP_NODES_TYPE:
                 continue
             for node_name, knobs in reads.items():
                 _node = Node(node_class, self)
@@ -96,4 +102,9 @@ if __name__ == '__main__':
     # nuke.scriptSaveAs(test_file_out)
 
     nuke = NukeCmds(path_test_file)
-    pprint(nuke.allNodes())
+    # pprint(nuke.allNodes())
+    print(nuke.allNodes())
+    node = nuke.toNode("Link_leaves_proj2")
+    print(node.knob("label").value())
+    print(node.knob("hide_input").value())
+    print(node.knob("Tlink").value())
