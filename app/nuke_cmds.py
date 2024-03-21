@@ -74,9 +74,10 @@ class NukeCmds(object):
 
     def _get_connected_nodes(self):
         _input_nodes = {}
+        pprint(self._scene.get_inputs())
         for node_name, datas in self._scene.get_inputs().items():
             object_node = datas.get("object")
-            node = self.toNode(node_name)
+            node = next((node for node in self._all_nodes if node_name == node.name()), None)
             if object_node:
                 node.object = object_node
             if not node_name in _input_nodes.keys():
@@ -149,11 +150,14 @@ if __name__ == '__main__':
 
     nuke = NukeCmds(path_test_file)
     print("")
-    # pprint(nuke._get_connected_nodes())
+    pprint(nuke._get_connected_nodes())
+    print("")
     # pprint(nuke.allNodes())
     # print(nuke.root().name())
     # print(nuke.allNodes())
-    node = nuke.toNode("Dot14")
+    node = nuke.toNode("Link_cam_3D1")
+    print(node)
+    print(node.dependent())
     # print(node.knob("xpos").value())
     # for i in node.group_nodes:
     #     print(i.name(), i.parent_node.name())

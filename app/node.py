@@ -83,6 +83,7 @@ class Node(object):
     def dependent(self):
         """Nodes connected to this node
         """
+        # pprint(self.parent.)
         pass
 
     def dependencies(self):
@@ -143,8 +144,8 @@ class Node(object):
             self._knobs_object[_knob_name] = _knob
 
     def __str__(self):
-        return "{} {}".format(
-            self._class_name, self._knobs_dict.get("name")#, ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
+        return "{} : {} '{}'".format(
+            self.__class__, self._class_name, self._knobs_dict.get("name")#, ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
         )
 
     # PRIVATES

@@ -345,6 +345,12 @@ class SceneDict(object):
                     i += 1
 
                 node_name = self._get_name(out_range=i-1)
+                if node_name == "NoneName":
+                    while True:
+                        i -= 1
+                        node_name = self._get_name(out_range=i)
+                        if node_name != "NoneName":
+                            break
                 _inputs_nodes[node_name] = {
                     "name": node_name,
                     "object": node_object,
@@ -371,9 +377,6 @@ class SceneDict(object):
 
             # Multiples Inputs
             elif re.match(r" inputs (?!0$)[12]$", ligne):
-                #Si tous les nodes au dessus ont pas de inputs alors
-                #Le node
-                #TODO if node is not above above have to find the right node
                 in_range = [in_range for in_range, out_range in self._group_nodes_filtered.items() if in_range <= i <= out_range][0]
                 node_name = self._get_name(in_range=in_range)
                 index_cle_in = groups_in.index(in_range)
@@ -395,7 +398,6 @@ class SceneDict(object):
         for i, (in_range, out_range) in enumerate(self._group_nodes_filtered.items()):
             has_input = True
             node_name = self._get_name(in_range)
-
             for ligne_index in range(in_range, out_range):
                 ligne = self._scene_lines[ligne_index]
                 if "inputs 0" in ligne:
@@ -407,7 +409,18 @@ class SceneDict(object):
                     continue
                 index_cle_in = groups_in.index(in_range)
                 group_above_in = groups_in[index_cle_in - 1]
+                if self._scene_lines[in_range-2] == "end_group":
+                    while True:
+                        group_above_in -= 1
+                        if self._scene_lines[group_above_in].startswith("Group"):
+                            break
                 node_above_name = self._get_name(in_range=group_above_in)
+                if node_above_name == "NoneName":
+                    while True:
+                        group_above_in -= 1
+                        node_above_name = self._get_name(in_range=group_above_in)
+                        if node_above_name != "NoneName":
+                            break
                 if node_above_name not in _inputs_nodes.keys():
                     _inputs_nodes[node_above_name] = {}
                     _inputs_nodes[node_above_name] = {
@@ -416,7 +429,8 @@ class SceneDict(object):
                         "object": None
                     }
                 else:
-                    _inputs_nodes[node_above_name]["dependents"].append(node_name)
+                    if not node_name in _inputs_nodes[node_above_name]["dependents"]:
+                        _inputs_nodes[node_above_name]["dependents"].append(node_name)
 
         _nodes_already_use = []
         for in_range, (node, f_input_node) in _multi_inputs_nodes.items():
@@ -487,9 +501,11 @@ class SceneDict(object):
 if __name__ == "__main__":
     path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
     result_dict = SceneDict(path_test_file)
-    pprint(result_dict.get_dict().get("Group").get("ColourDilate_FS2"))
-    pprint(result_dict.get_dict().get("Group").get("TX_HueKeyer2"))
+    # pprint(result_dict.get_dict().get("Group").get("ColourDilate_FS2"))
+    # pprint(result_dict.get_dict().get("Group").get("TX_HueKeyer2"))
     # pprint(result_dict.groups())
-    pprint(result_dict.get_inputs().get("None"))
-    pprint(result_dict.get_inputs().get("NoneName"))
+    pprint(result_dict.get_dict())
+    print("")
+    # pprint(result_dict.get_inputs().get("NoneName"))
+    # pprint(result_dict.get_inputs().get("NoneName"))
     # pprint(result_dict.groups(False))
