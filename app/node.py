@@ -26,14 +26,18 @@ class Node(object):
     X_OFFSET = 0
     Y_OFFSET = 50
     DEFAULT_KNOBS = ["name", "inputs", "xpos", "ypos"]
+    SKIPS_KNOBS = ["nodes"]
 
     def __init__(self, class_name, parent):
 
+        self.object = None
         self.parent = parent
 
         self._class_name = class_name
         self._knobs_dict = {}
         self._knobs_object = {}
+        self._group_nodes = []
+        self._parent_node = None
 
         if class_name == "Root":
             self._knobs_dict["inputs"] = 0
@@ -43,8 +47,22 @@ class Node(object):
 
         self._sub_class_name = f"[{self._get_index()}]{class_name}"
 
+    @property
+    def group_nodes(self):
+        return self._group_nodes
+
+    @property
+    def parent_node(self):
+        return self._parent_node
+
     def name(self):
         return self._knobs_dict.get("name")
+
+    def begin(self):
+        pass
+
+    def end(self):
+        pass
 
     def knob(self, knob_name):
         if knob_name not in self._knobs_object and \
@@ -53,11 +71,24 @@ class Node(object):
             self._knobs_object[knob_name] = Knob(knob_name, parent=self)
         return self._knobs_object.get(knob_name)
 
+    def knobs(self):
+        return [knob for knob in self._knobs_object.values()]
+
     def Class(self):
         return self._class_name
 
     def subClass(self):
         return self._sub_class_name
+
+    def dependent(self):
+        """Nodes connected to this node
+        """
+        pass
+
+    def dependencies(self):
+        """Nodes that this Node is connected to
+        """
+        pass
 
     def isSelected(self):
         return self._knobs_dict.get("selected", False)
@@ -85,6 +116,14 @@ class Node(object):
         else:
             self._knobs_dict.pop("selected")
 
+    def set_group_nodes(self, nodes=None):
+        if nodes is None:
+            nodes = []
+        self._group_nodes = nodes
+
+    def set_parent_node(self, node=None):
+        self._parent_node = node
+
     def get_node_dict(self):
         return self._knobs_dict
 
@@ -96,14 +135,16 @@ class Node(object):
 
     def build_node_from_data(self, data):
         for _knob_name, value in data.items():
+            if _knob_name in self.SKIPS_KNOBS:
+                continue
             _knob = Knob(_knob_name, parent=self)
             _knob.setValue(value)
             self._knobs_dict[_knob_name] = value
             self._knobs_object[_knob_name] = _knob
 
     def __str__(self):
-        return "{} {} : {}".format(
-            self._class_name, self._knobs_dict.get("name"), ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
+        return "{} {}".format(
+            self._class_name, self._knobs_dict.get("name")#, ["{}: {}".format(i, j) for i, j in self._knobs_dict.items()]
         )
 
     # PRIVATES

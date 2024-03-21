@@ -8,6 +8,8 @@ from pprint import pprint
 
 class SceneDict(object):
 
+    SPECIALS_NODES_KEYS = ["Root", "define_window_layout_xml", "version", "add_layer", "clone"]
+
     def __init__(self, scene_path):
         self._errors = {}
         with open(scene_path, "r") as path_file:
@@ -24,7 +26,8 @@ class SceneDict(object):
     def errors(self):
         return self._errors
 
-    def groups(self, filtered=True):
+    @property
+    def index_groups(self, filtered=True):
         return self._group_nodes if not filtered else self._group_nodes_filtered
 
     def get_dict(self):
@@ -86,12 +89,12 @@ class SceneDict(object):
 
             result_node_list[node_class][index] = []
 
-            for i_range in range(num_ligne, end_ligne - 1):
+            for i_range in range(num_ligne, end_ligne+2):
                 ligne = self._scene_lines[i_range]
                 index = max(result_node_list[node_class].keys())
                 result_node_list[node_class][index].append(ligne)
-
-        result = self._knobs_from_data(result_node_list)
+        all_nodes = self._knobs_from_data(result_node_list)
+        result = self._get_groups_nodes(all_nodes)
         return result
 
     def _knobs_from_data(self, list_nodes):
@@ -128,11 +131,32 @@ class SceneDict(object):
                         result[node_class] = {}
                     result[node_class][node_name] = _data
                 else:
-                    datas = self._parse_knobs_for_node(lines)
+                    datas = self._parse_knobs_for_node(lines[:-3])
                     if not node_class in result.keys():
                         result[node_class] = {}
                     result[node_class][datas.get('name')] = datas
         return result
+
+    def _get_groups_nodes(self, result_dict):
+        _is_group = False
+        _group_name = None
+        for i, line in enumerate(self._scene_lines):
+            if line.startswith("Group"):
+                _is_group = True
+                _group_name = self._get_name(in_range=i)
+                result_dict["Group"][_group_name]["nodes"] = []
+            elif line.startswith("end_group") and _is_group:
+                _is_group = False
+                _group_name = None
+            if not _is_group:
+                continue
+            if any([self._scene_lines[i].startswith(a) for a in ["set", "push"]]):
+                continue
+            curr_node_name = self._get_name(in_range=i)
+            if _is_group and curr_node_name != _group_name:
+                if curr_node_name not in result_dict["Group"][_group_name]["nodes"]:
+                    result_dict["Group"][_group_name]["nodes"].append(curr_node_name)
+        return result_dict
 
     def _parse_knobs_for_node(self, lines):
         """Parse each line of Node string list
@@ -291,7 +315,7 @@ class SceneDict(object):
 
         for ligne_index in range(in_range, out_range):
             ligne = self._scene_lines[ligne_index]
-            if "name" not in ligne:
+            if not ligne.startswith("name"):
                 continue
             name = ligne.split(" ")[-1]
         return name
@@ -463,7 +487,9 @@ class SceneDict(object):
 if __name__ == "__main__":
     path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
     result_dict = SceneDict(path_test_file)
-    pprint(result_dict.get_dict())
+    pprint(result_dict.get_dict().get("Group").get("ColourDilate_FS2"))
+    pprint(result_dict.get_dict().get("Group").get("TX_HueKeyer2"))
     # pprint(result_dict.groups())
-    # pprint(result_dict.get_inputs())
+    pprint(result_dict.get_inputs().get("None"))
+    pprint(result_dict.get_inputs().get("NoneName"))
     # pprint(result_dict.groups(False))

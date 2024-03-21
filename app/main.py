@@ -1,11 +1,11 @@
 import argparse
 from pprint import pprint
-from io_file import SceneParser
+from io_file import SceneDict
 
 
 def run(path, export_path=None):
 
-    scene = SceneParser(path)
+    scene = SceneDict(path)
     pprint(scene.get_dict())
 
     if export_path:
