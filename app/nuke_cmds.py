@@ -78,6 +78,7 @@ class NukeCmds(object):
         for node_name, datas in self._scene.get_inputs().items():
             object_node = datas.get("object")
             node = next((node for node in self._all_nodes if node_name == node.name()), None)
+            print(node_name, node)
             if object_node:
                 node.object = object_node
             if not node_name in _input_nodes.keys():
@@ -96,26 +97,19 @@ class NukeCmds(object):
     def _get_all_nodes(self):
         all_nodes = []
         _grp_nodes = []
-        for node_class, reads in self._dict_scene.items():
+        for node_class, nodes in self._dict_scene.items():
             if node_class in self.SKIP_NODES_TYPE:
                 continue
-            for node_name, knobs in reads.items():
+            for node_name, knobs in nodes.items():
                 _node = Node(node_class, self)
                 _node.build_node_from_data(knobs)
                 all_nodes.append(_node)
-                if node_class == "Group":
-                    _grp_nodes.append(_node)
-                    _node.set_group_nodes(knobs.get("nodes"))
-
-        for grp_node in _grp_nodes:
-            _nodes = []
-            for _node_name in grp_node.group_nodes:
-                _node = next(
-                    (node for node in all_nodes if _node_name == node.name()), None
-                )
-                _node.set_parent_node(grp_node)
-                _nodes.append(_node)
-            grp_node.set_group_nodes(_nodes)
+                if node_class in ["Group", "Gizmo"]:
+                    for _sub_grp in knobs.get("nodes"):
+                        _sub_grp_node = Node(_sub_grp, self)
+                        _sub_grp_node.set_parent_node(_node)
+                        _grp_nodes.append(_sub_grp_node)
+                    _node.set_group_nodes(_grp_nodes)
 
         return all_nodes
 
@@ -146,18 +140,21 @@ if __name__ == '__main__':
     # print([i.name() for i in nuke.allNodes()])
     # print([i.name() for i in nuke.selectedNodes()])
     #
-    # nuke.scriptSaveAs(test_file_out)
-
     nuke = NukeCmds(path_test_file)
+    # nuke.scriptSaveAs(test_file_out)
+    # node = nuke.toNode("Switch2")
+    # pprint(nuke.scene.get("Switch"))
+    # pprint(nuke.scene.get("Group"))
+    # print(node)
     print("")
     pprint(nuke._get_connected_nodes())
-    print("")
+    # print("")
     # pprint(nuke.allNodes())
     # print(nuke.root().name())
     # print(nuke.allNodes())
-    node = nuke.toNode("Link_cam_3D1")
-    print(node)
-    print(node.dependent())
+    # node = nuke.toNode("Link_cam_3D1")
+    # print(node)
+    # print(node.dependent())
     # print(node.knob("xpos").value())
     # for i in node.group_nodes:
     #     print(i.name(), i.parent_node.name())
