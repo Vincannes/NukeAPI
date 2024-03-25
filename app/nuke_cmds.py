@@ -49,9 +49,9 @@ class NukeCmds(object):
 
     def selectedNode(self):
         """
-        Returns the ‘node the user is thinking about’.
+        Returns the node the user is thinking about.
         If several nodes are selected, this returns one of them.
-        The one returned will be an ‘output’ node in that no other
+        The one returned will be an output node in that no other
         selected nodes use that node as an input.
         :return:
         """
@@ -119,8 +119,10 @@ class NukeCmds(object):
 nuke = NukeCmds()
 
 if __name__ == '__main__':
-    test_file_out = "D:\\Desk\\python\\NukeAPI\\tests\\test_final_2.nk"
-    path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
+    import os
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    test_file_out = os.path.join(os.path.dirname(this_dir), "tests", "test_final_2.nk")
+    path_test_file = os.path.join(os.path.dirname(this_dir), "tests", "083_060-cmp-base-v016.nk")
     # path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v017.nk"
 
     # nuke = NukeCmds()
@@ -142,7 +144,7 @@ if __name__ == '__main__':
     # print([i.name() for i in nuke.allNodes()])
     # print([i.name() for i in nuke.selectedNodes()])
     #
-    nuke = NukeCmds(path_test_file)
+    nuke = NukeCmds("/homes/trolardv/Documents/doc_delivery/0089_mou_0010-vzero-base-v003.nk")
     # nuke.scriptSaveAs(test_file_out)
     # node = nuke.toNode("Switch2")
     # pprint(nuke.scene.get("Switch"))
@@ -156,8 +158,8 @@ if __name__ == '__main__':
     print(nuke.root())
     print(nuke.root().name())
     # print(nuke.allNodes())
-    # node = nuke.toNode("Link_cam_3D1")
-    # print(node)
+    node = nuke.toNode("Link_cam_3D1")
+    print(node)
     # print(node.dependent())
     # print(node.knob("xpos").value())
     # for i in node.group_nodes:

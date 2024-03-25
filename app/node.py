@@ -16,8 +16,8 @@ with open(path_node_knobs, 'r') as json_path:
 
 
 def get_int_from_string(name):
-    match = re.search(r'(\d+)', name)
-    if not re.search(r'(\d+)', name):
+    match = re.search(r'(\d+)', str(name))
+    if not re.search(r'(\d+)', str(name)):
         return 0
     return int(match.group(1))
 
@@ -45,7 +45,7 @@ class Node(object):
         else:
             self._set_default_knobs()
 
-        self._sub_class_name = f"[{self._get_index()}]{class_name}"
+        self._sub_class_name = "[{}]{}".format(self._get_index(),class_name)
 
     @property
     def group_nodes(self):

@@ -3,8 +3,8 @@
 # copyright	:Vincannes
 import re
 import json
+import time
 from pprint import pprint
-from collections import OrderedDict
 
 
 class SceneDict(object):
@@ -17,6 +17,7 @@ class SceneDict(object):
             scene_text = path_file.read()
 
         self._scene_lines = scene_text.split("\n")
+        self._len_lines = len(self._scene_lines)
         self._group_nodes = self._get_group_nodes(self._scene_lines)
         self._group_nodes_filtered = self._filtrer_ranges(self._group_nodes)
         self._inputs_nodes = self._get_all_inputs()
@@ -79,7 +80,10 @@ class SceneDict(object):
                 result.append(_version)
                 continue
 
-            elif node_class in ["Root", "define_window_layout_xml"]: # ici perte data pour window
+            elif node_class == "define_window_layout_xml": # ici perte data pour window "Root", 
+                result.append({node_class: {node_class: lines}})
+
+            elif node_class == "Root":
                 result.append({node_class: self._parse_knobs_for_node(lines)})
 
             elif node_class == "add_layer":
@@ -186,7 +190,18 @@ class SceneDict(object):
                 if knob not in result.keys():
                     result[knob] = []
 
-                if isinstance(result[knob], str):
+                if knob == "addUserKnob":
+                    splited = value.split(" ")
+                    _user_knob = {
+                        "name": splited[1],
+                        "index_knob": splited[0],
+                        "value": " ".join(splited[2:])
+                        
+                    }
+                    result[knob].append(_user_knob)
+                    continue
+
+                elif isinstance(result[knob], str):
                     tmp_val = result[knob]
                     del result[knob]
                     result[knob] = []
@@ -210,6 +225,8 @@ class SceneDict(object):
 
                 result[prev_knob].append(line)
 
+
+
             # is space or empty line
             elif len(re.findall(r"^\s*$", line)) > 0:
                 continue
@@ -223,6 +240,8 @@ class SceneDict(object):
             # normal knob
             else:
                 try:
+                    if line[0] == " ":
+                        line = line[1:]
                     splited = line.split(' ')
                     knob, value = splited[0], " ".join(splited[1:]).replace('"', "")
                     result[knob] = value
@@ -318,7 +337,7 @@ class SceneDict(object):
 
         for ligne_index in range(in_range, out_range):
             ligne = self._scene_lines[ligne_index]
-            if not ligne.startswith("name"):
+            if not ligne.startswith("name") and not ligne.startswith(" name"):
                 continue
             name = ligne.split(" ")[-1]
         return name
@@ -372,7 +391,16 @@ class SceneDict(object):
                 if node_object == "cut_paste_input":
                     continue
 
-                class_name, node_name = self._get_class_name_node(i)
+                node_name = self._get_name(out_range=i)
+                if node_name == "NoneName":
+                    ri = i
+                    while True:
+                        ri -= 1
+                        if ri < 0:
+                            break
+                        node_name = self._get_name(out_range=ri)
+                        if node_name != "NoneName":
+                            break
 
                 if not curr_scene_name in _inputs_nodes.keys():
                     _inputs_nodes[curr_scene_name] = []
@@ -554,7 +582,10 @@ class SceneDict(object):
 
 
 if __name__ == "__main__":
-    path_test_file = "D:\\Desk\\python\\NukeAPI\\tests\\083_060-cmp-base-v016.nk"
+    import os
+    this_dir = os.path.dirname(os.path.abspath(__file__))
+    test_file_out = os.path.join(os.path.dirname(this_dir), "tests", "test_final_2.nk")
+    path_test_file = os.path.join(os.path.dirname(this_dir), "tests", "083_060-cmp-base-v016.nk")
     result_dict = SceneDict(path_test_file)
     # pprint(result_dict.get_dict().get("Group").get("ColourDilate_FS2"))
     # pprint(result_dict.get_nodes().get("Group")))
