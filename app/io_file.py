@@ -464,7 +464,7 @@ class SceneDict(object):
 
             # IS GROUP PART
             if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo"]]):
-                curr_scene_name = self._get_name(in_range=i)
+                curr_scene_name = self._get_name(in_range=in_range)
             elif any([self._scene_lines[in_range - _i] == "end_group" for _i in range(0, 6)]):
                 curr_scene_name = "current_scene"
 
