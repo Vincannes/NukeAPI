@@ -138,10 +138,22 @@ class Node(object):
         for _knob_name, value in data.items():
             if _knob_name in self.SKIPS_KNOBS:
                 continue
-            _knob = Knob(_knob_name, parent=self)
-            _knob.setValue(value)
-            self._knobs_dict[_knob_name] = value
-            self._knobs_object[_knob_name] = _knob
+            if _knob_name == "addUserKnob":
+                for _sub_knob in value:
+                    _knob_name = _sub_knob.get("name")
+                    _value = _sub_knob.get("value")
+
+                    _knob = Knob(_knob_name, parent=self)
+                    _knob.setValue(_value)
+                    _knob.index_data = _sub_knob.get("index_knob")
+
+                    self._knobs_dict[_knob_name] = _value
+                    self._knobs_object[_knob_name] = _knob
+            else:
+                _knob = Knob(_knob_name, parent=self)
+                _knob.setValue(value)
+                self._knobs_dict[_knob_name] = value
+                self._knobs_object[_knob_name] = _knob
 
     def __str__(self):
         return "{} : {} '{}'".format(
