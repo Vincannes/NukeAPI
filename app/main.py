@@ -5,8 +5,10 @@ from io_file import SceneDict
 
 def run(path, export_path=None):
 
-    scene = SceneDict(path)
-    pprint(scene.get_dict())
+    scene = SceneDict(path) 
+    # pprint(scene.get_nodes())
+    # print(len(scene.get_nodes()))
+    # pprint(scene.errors)
 
     if export_path:
         print(export_path)
@@ -25,7 +27,8 @@ if __name__ == "__main__":
         "export_path",
         type=str,
         help="Path to the export file as json.",
-        default=None
+        default=None,
+        # required=False
     )
 
     args = parser.parse_args()
