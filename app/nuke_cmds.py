@@ -9,42 +9,42 @@ from pprint import pprint
 
 
 class NukeCmds(object):
-    SKIP_NODES_TYPE = ["version", "Root", "define_window_layout_xml", "add_layer", "clone"]
+    SKIP_NODES_TYPE = ["version", "define_window_layout_xml", "add_layer", "clone"]
 
     def __init__(self, scene=None):
         if scene is None:
             self._scene = None
-            self._dict_scene = OrderedDict()
+            self._nodes_scene = OrderedDict()
             self._all_nodes = []
         else:
             self._scene = self.scriptOpen(scene)
-            self._dict_scene = self._scene.get_dict()
+            self._nodes_scene = self._scene.get_nodes()
             self._all_nodes = self._get_all_nodes()
 
     @property
     def scene(self):
-        return self._dict_scene
+        return self._nodes_scene
 
     def allNodes(self, filter=None, recursiveGroups=False):
-        if filter and not recursiveGroups: # si filtre et pas groups
+        if filter and not recursiveGroups:# si filtre et pas groups
             _nodes = [n for n in self._all_nodes if n.Class() == filter and not n.parent_node]
         elif recursiveGroups: # si groups et pas filtre
             _nodes = self._all_nodes
-        elif filter and recursiveGroups: # si filtre et groups
+        elif filter and recursiveGroups:# si filtre et groups
             _nodes = [n for n in self._all_nodes if n.Class() == filter]
-        else: # tous les nodes hors groups
+        else:# tous les nodes hors groups
             _nodes = [n for n in self._all_nodes if not n.parent_node]
         return _nodes
 
-    def createNode(self, name):
-        _node = Node(name, self)
-        self._dict_scene[_node.subClass()] = _node.get_node_dict()
-        return _node
+    # def createNode(self, name):
+    #     _node = Node(name, self)
+    #     self._dict_scene[_node.subClass()] = _node.get_node_dict()
+    #     return _node
 
     def root(self):
-        knobs = self._dict_scene.get("Root")
-        _node = Node("Root", self)
-        _node.build_node_from_data(knobs)
+        _node = next(
+            (node for node in self._all_nodes if node.Class() == "Root")
+        )
         return _node
 
     def selectedNode(self):
@@ -60,9 +60,9 @@ class NukeCmds(object):
     def selectedNodes(self):
         return [i for i in self.allNodes() if i.isSelected()]
 
-    def scriptSaveAs(self, path):
-        self._set_root(path)
-        io_file.dict_to_nk_scene(self._dict_scene, path)
+    # def scriptSaveAs(self, path):
+    #     self._set_root(path)
+    #     io_file.dict_to_nk_scene(self._dict_scene, path)
 
     def scriptOpen(self, path):
         return SceneDict(path)
@@ -91,24 +91,26 @@ class NukeCmds(object):
     def _set_root(self, path):
         _root_node = Node("Root", self)
         _root_node.knob("name").setValue(path)
-        self._dict_scene[_root_node.subClass()] = _root_node.get_node_dict()
-        self._dict_scene.move_to_end(_root_node.subClass(), last=False)
+        self._all_nodes.append(_root_node)
 
     def _get_all_nodes(self):
         all_nodes = []
-        _grp_nodes = []
-        for node_class, nodes in self._dict_scene.items():
-            if node_class in self.SKIP_NODES_TYPE:
-                continue
-            for node_name, knobs in nodes.items():
+        for node_dict in self._nodes_scene:
+            for node_name, knobs in node_dict.items():
+                if node_name in self.SKIP_NODES_TYPE or knobs.get("Class", node_name) in self.SKIP_NODES_TYPE:
+                    continue
+                node_class = knobs.get("Class", node_name)
                 _node = Node(node_class, self)
                 _node.build_node_from_data(knobs)
                 all_nodes.append(_node)
                 if node_class in ["Group", "Gizmo"]:
+                    _grp_nodes = []
                     for _sub_grp in knobs.get("nodes"):
-                        _sub_grp_node = Node(_sub_grp, self)
-                        _sub_grp_node.set_parent_node(_node)
-                        _grp_nodes.append(_sub_grp_node)
+                        for _sub_node_name, _sub_data in _sub_grp.items():
+                            _sub_grp_node = Node(_sub_data.get("Class"), self)
+                            _sub_grp_node.build_node_from_data(_sub_data)
+                            _sub_grp_node.set_parent_node(_node)
+                            _grp_nodes.append(_sub_grp_node)
                     _node.set_group_nodes(_grp_nodes)
 
         return all_nodes
@@ -147,10 +149,12 @@ if __name__ == '__main__':
     # pprint(nuke.scene.get("Group"))
     # print(node)
     print("")
-    pprint(nuke._get_connected_nodes())
+    # pprint(nuke._get_connected_nodes())
     # print("")
     # pprint(nuke.allNodes())
-    # print(nuke.root().name())
+    print(len(nuke.allNodes()))
+    print(nuke.root())
+    print(nuke.root().name())
     # print(nuke.allNodes())
     # node = nuke.toNode("Link_cam_3D1")
     # print(node)

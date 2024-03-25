@@ -156,10 +156,10 @@ class Node(object):
     def _get_positions(self):
         xpos = 0
         ypos = 0
-        for node_class, nodes in self.parent.scene.items():
-            if node_class in self.parent.SKIP_NODES_TYPE:
-                continue
-            for node, knobs in nodes.items():
+        for node_data in self.parent.scene:
+            for node_name, knobs in node_data.items():
+                if node_name in self.parent.SKIP_NODES_TYPE or knobs.get("Class") in self.parent.SKIP_NODES_TYPE:
+                    continue
                 _xpos = knobs.get("xpos", 0)
                 _ypos = knobs.get("ypos", 0)
                 xpos += int(_xpos) + self.X_OFFSET
@@ -167,23 +167,26 @@ class Node(object):
         return xpos, ypos
 
     def _get_index(self):
-        return len(self._get_node_from_dict())
+        return len(self._get_nodes_from_scene())
 
     def _generate_name(self):
         names_iter = [0]
-        for _name in self._get_node_from_dict():
+        for _name in self._get_nodes_from_scene():
             _int = get_int_from_string(_name)
             names_iter.append(_int)
         index_name = max(names_iter) + 1
         return self._class_name + str(index_name)
 
-    def _get_node_from_dict(self):
+    def _get_nodes_from_scene(self):
         similars_node = []
-        for node_class, node_data in self.parent.scene.items():
-            if self._class_name not in node_class:
-                continue
-            for node, a in node_data.items():
-                similars_node.append(node)
+        for node_data in self.parent.scene:
+            for node_name, knobs in node_data.items():
+                if node_name in self.parent.SKIP_NODES_TYPE:
+                    continue
+                class_node = knobs.get("Class")
+                if class_node != self._class_name:
+                    continue
+                similars_node.append(node_name)
         return similars_node
 
     def _set_default_knobs(self):
