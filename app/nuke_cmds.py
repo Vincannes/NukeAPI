@@ -74,19 +74,32 @@ class NukeCmds(object):
 
     def _get_connected_nodes(self):
         _input_nodes = {}
-        pprint(self._scene.get_inputs())
-        for node_name, datas in self._scene.get_inputs().items():
-            object_node = datas.get("object")
-            node = next((node for node in self._all_nodes if node_name == node.name()), None)
-            print(node_name, node)
-            if object_node:
-                node.object = object_node
-            if not node_name in _input_nodes.keys():
-                _input_nodes[node_name] = []
-            for dependent_name in datas.get("dependents"):
-                dependent_node = self.toNode(dependent_name)
-                _input_nodes[node_name].append(dependent_node)
+        # pprint(self._scene.get_inputs())
+        for node_scene, nodes in self._scene.get_inputs().items():
+            _input_nodes[node_scene] = []
+
+            for node in nodes:
+                for node_name, _datas in node.items():
+                    _input_nodes[node_scene].append(node_name)
+            # object_node = datas.get("object")
+            # node = next((node for node in self._all_nodes if node_name == node.name()), None)
+            # if object_node:
+            #     node.object = object_node
+            # if not node_name in _input_nodes.keys():
+            #     _input_nodes[node_name] = []
+            # for dependent_name in datas.get("dependents"):
+            #     dependent_node = self.toNode(dependent_name)
+            #     _input_nodes[node_name].append(dependent_node)
         return _input_nodes
+
+    def _get_dependencies(self, node_name):
+        _dependents = []
+        for node_scene, nodes in self._scene.get_inputs().items():
+            for node in nodes:
+                for _node_name, _datas in node.items():
+                    if _node_name == node_name:
+                        _dependents.extend(_datas.get("dependents"))
+        return _dependents
 
     def _set_root(self, path):
         _root_node = Node("Root", self)
@@ -99,9 +112,15 @@ class NukeCmds(object):
             for node_name, knobs in node_dict.items():
                 if node_name in self.SKIP_NODES_TYPE or knobs.get("Class", node_name) in self.SKIP_NODES_TYPE:
                     continue
+                a = self._get_dependencies(node_name)
                 node_class = knobs.get("Class", node_name)
                 _node = Node(node_class, self)
                 _node.build_node_from_data(knobs)
+
+                _node.add_dependencies(
+                    a
+                )
+
                 all_nodes.append(_node)
                 if node_class in ["Group", "Gizmo"]:
                     _grp_nodes = []
@@ -144,7 +163,7 @@ if __name__ == '__main__':
     # print([i.name() for i in nuke.allNodes()])
     # print([i.name() for i in nuke.selectedNodes()])
     #
-    nuke = NukeCmds("/homes/trolardv/Documents/doc_delivery/0089_mou_0010-vzero-base-v003.nk")
+    nuke = NukeCmds("/homes/trolardv/Documents/0089_mou_0010-vzero-base-v003.nk")
     # nuke.scriptSaveAs(test_file_out)
     # node = nuke.toNode("Switch2")
     # pprint(nuke.scene.get("Switch"))
@@ -154,12 +173,15 @@ if __name__ == '__main__':
     # pprint(nuke._get_connected_nodes())
     # print("")
     # pprint(nuke.allNodes())
-    print(len(nuke.allNodes()))
-    print(nuke.root())
-    print(nuke.root().name())
+    # print(len(nuke.allNodes()))
+    # print(nuke.root())
+    # print(nuke.root().name())
     # print(nuke.allNodes())
-    node = nuke.toNode("Link_cam_3D1")
-    print(node)
+    # node = nuke.toNode("MikRead1")
+    # print(node)
+    # for knob in node.knobs():
+    #     print(knob)
+    #     print(knob.name(), knob.value())
     # print(node.dependent())
     # print(node.knob("xpos").value())
     # for i in node.group_nodes:

@@ -37,6 +37,7 @@ class Node(object):
         self._knobs_dict = {}
         self._knobs_object = {}
         self._group_nodes = []
+        self._dependencies = []
         self._parent_node = None
 
         if class_name == "Root":
@@ -154,6 +155,12 @@ class Node(object):
                 _knob.setValue(value)
                 self._knobs_dict[_knob_name] = value
                 self._knobs_object[_knob_name] = _knob
+
+    def add_dependencies(self, dependencies=None):
+        if not dependencies:
+            dependencies = []
+
+        self._dependencies = dependencies
 
     def __str__(self):
         return "{} : {} '{}'".format(

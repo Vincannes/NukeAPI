@@ -3,7 +3,6 @@
 # copyright	:Vincannes
 import re
 import json
-import time
 from pprint import pprint
 
 
@@ -304,11 +303,13 @@ class SceneDict(object):
                 if _in <= out_range <= _out:
                     in_range = _in
                     out_range = _out
+                    break
         if in_range is not None:
             for _in, _out in self._group_nodes_filtered.items():
                 if _in <= in_range <= _out:
                     in_range = _in
                     out_range = _out
+                    break
 
         if not in_range and not out_range:
             return None, None
@@ -337,7 +338,7 @@ class SceneDict(object):
 
         for ligne_index in range(in_range, out_range):
             ligne = self._scene_lines[ligne_index]
-            if not ligne.startswith("name") and not ligne.startswith(" name"):
+            if not re.match(r"\s*name", ligne):
                 continue
             name = ligne.split(" ")[-1]
         return name
@@ -381,7 +382,7 @@ class SceneDict(object):
         for i, ligne in enumerate(self._scene_lines, 0):
 
             # IS GROUP PART
-            if any([self._scene_lines[i].startswith(a) for a in ["Group", "Gizmo"]]):
+            if any([self._scene_lines[i].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
                 curr_scene_name = self._get_name(in_range=i)
             elif self._scene_lines[i] == "end_group":
                 curr_scene_name = "current_scene"
@@ -463,7 +464,7 @@ class SceneDict(object):
         for i, (in_range, out_range) in enumerate(self._group_nodes_filtered.items()):
 
             # IS GROUP PART
-            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo"]]):
+            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
                 curr_scene_name = self._get_name(in_range=in_range)
             elif any([self._scene_lines[in_range - _i] == "end_group" for _i in range(0, 6)]):
                 curr_scene_name = "current_scene"
@@ -472,7 +473,7 @@ class SceneDict(object):
                 _inputs_nodes[curr_scene_name] = []
 
             has_input = True
-            node_name = self._get_name(in_range)
+            node_name = self._get_name(in_range=in_range)
             for ligne_index in range(in_range, out_range):
                 ligne = self._scene_lines[ligne_index]
                 if "inputs 0" in ligne:
@@ -511,7 +512,7 @@ class SceneDict(object):
         for in_range, (node, f_input_node) in _multi_inputs_nodes.items():
 
             # IS GROUP PART
-            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo"]]):
+            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
                 curr_scene_name = self._get_name(in_range=in_range)
             elif any([self._scene_lines[in_range - _i] == "end_group" for _i in range(0, 6)]):
                 curr_scene_name = "current_scene"
@@ -586,6 +587,7 @@ if __name__ == "__main__":
     this_dir = os.path.dirname(os.path.abspath(__file__))
     test_file_out = os.path.join(os.path.dirname(this_dir), "tests", "test_final_2.nk")
     path_test_file = os.path.join(os.path.dirname(this_dir), "tests", "083_060-cmp-base-v016.nk")
+    path_test_file ="/homes/trolardv/Documents/0089_mou_0010-vzero-base-v003.nk"
     result_dict = SceneDict(path_test_file)
     # pprint(result_dict.get_dict().get("Group").get("ColourDilate_FS2"))
     # pprint(result_dict.get_nodes().get("Group")))
@@ -595,10 +597,12 @@ if __name__ == "__main__":
     #     for name, data in i.items():
     #         print(data)
     #         print(data.get("Class"))
-    pprint([data for i in result_dict.get_nodes() for name, data in i.items() if isinstance(data, dict) and data.get("Class") == "Group"])
-    pprint([data for i in result_dict.get_nodes() for name, data in i.items() if name == "version"])
+    pprint([data for i in result_dict.get_inputs().get("current_scene") for name, data in i.items() if data.get("name") == "Dot_Retime"])
+    # pprint([data for i in result_dict.get_nodes() for name, data in i.items() if isinstance(data, dict) and data.get("Class") == "Group"])
+    # pprint([data for i in result_dict.get_nodes() for name, data in i.items() if name == "version"])
     # pprint(result_dict.get_inputs())
     print("")
+    # pprint(result_dict.get_inputs())
     # pprint(result_dict.get_dict().get("Group").keys())
     # pprint(result_dict.get_inputs().get("NoneName"))
     # pprint(result_dict.groups(False))
