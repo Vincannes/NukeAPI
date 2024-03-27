@@ -72,29 +72,11 @@ class NukeCmds(object):
 
     # PRIVATES
 
-    def _get_connected_nodes(self):
-        _input_nodes = {}
-        # pprint(self._scene.get_inputs())
-        for node_scene, nodes in self._scene.get_inputs().items():
-            _input_nodes[node_scene] = []
-
-            for node in nodes:
-                for node_name, _datas in node.items():
-                    _input_nodes[node_scene].append(node_name)
-            # object_node = datas.get("object")
-            # node = next((node for node in self._all_nodes if node_name == node.name()), None)
-            # if object_node:
-            #     node.object = object_node
-            # if not node_name in _input_nodes.keys():
-            #     _input_nodes[node_name] = []
-            # for dependent_name in datas.get("dependents"):
-            #     dependent_node = self.toNode(dependent_name)
-            #     _input_nodes[node_name].append(dependent_node)
-        return _input_nodes
-
-    def _get_dependencies(self, node_name):
+    def _get_dependencies(self, node_name, curr_node_scene="current_scene"):
         _dependents = []
         for node_scene, nodes in self._scene.get_inputs().items():
+            if node_scene != curr_node_scene:
+                continue
             for node in nodes:
                 for _node_name, _datas in node.items():
                     if _node_name == node_name:
@@ -107,30 +89,36 @@ class NukeCmds(object):
         self._all_nodes.append(_root_node)
 
     def _get_all_nodes(self):
+        pprint(self._scene.get_inputs())
         all_nodes = []
         for node_dict in self._nodes_scene:
             for node_name, knobs in node_dict.items():
                 if node_name in self.SKIP_NODES_TYPE or knobs.get("Class", node_name) in self.SKIP_NODES_TYPE:
                     continue
-                a = self._get_dependencies(node_name)
                 node_class = knobs.get("Class", node_name)
                 _node = Node(node_class, self)
                 _node.build_node_from_data(knobs)
-
-                _node.add_dependencies(
-                    a
-                )
-
                 all_nodes.append(_node)
                 if node_class in ["Group", "Gizmo"]:
                     _grp_nodes = []
                     for _sub_grp in knobs.get("nodes"):
-                        for _sub_node_name, _sub_data in _sub_grp.items():
+                        for _, _sub_data in _sub_grp.items():
                             _sub_grp_node = Node(_sub_data.get("Class"), self)
                             _sub_grp_node.build_node_from_data(_sub_data)
                             _sub_grp_node.set_parent_node(_node)
                             _grp_nodes.append(_sub_grp_node)
                     _node.set_group_nodes(_grp_nodes)
+
+        # Set dependents Nodes to each Node
+        for node in all_nodes:
+            _dep_nodes = []
+            node_name = node.name()
+            node_class = node.Class()
+            scene_name = "current_scene" if not node_class in ["Group", "LiveGroup", "Gizmo"] else node_name
+            for _dep in self._get_dependencies(node_name, scene_name):
+                _dep_node = [n for n in all_nodes if n.name() == _dep]
+                _dep_nodes.append(_dep_node[0])
+            node.add_dependencies(_dep_nodes)
 
         return all_nodes
 
@@ -169,7 +157,6 @@ if __name__ == '__main__':
     # pprint(nuke.scene.get("Switch"))
     # pprint(nuke.scene.get("Group"))
     # print(node)
-    print("")
     # pprint(nuke._get_connected_nodes())
     # print("")
     # pprint(nuke.allNodes())
@@ -177,8 +164,15 @@ if __name__ == '__main__':
     # print(nuke.root())
     # print(nuke.root().name())
     # print(nuke.allNodes())
+    print("")
     # node = nuke.toNode("MikRead1")
-    # print(node)
+    # print(node.name(),node.dependencies())
+    nodea = nuke.toNode("Dot54")
+    print(nodea.name(),nodea.dependencies())
+    anodea = nuke.toNode("DOT_DENOISE_INPUT2")
+    print(anodea.name(), anodea.dependencies())
+    anodea = nuke.toNode("Anchor_MASTER_INPUT")
+    print(anodea.name(), anodea.dependencies())
     # for knob in node.knobs():
     #     print(knob)
     #     print(knob.name(), knob.value())

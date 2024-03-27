@@ -116,7 +116,7 @@ class SceneDict(object):
                 else:
                     result[node_index][node_class].append({node_name: _data})
 
-            elif node_class in ["Group", "Gizmo"]:
+            elif node_class in ["Group", "Gizmo", "LiveGroup"]:
                 _data = self._parse_knobs_for_node(lines)
                 grp_name = _data.get("name")
                 _data["Class"] = node_class
@@ -130,7 +130,8 @@ class SceneDict(object):
                     _group_name = (None, None)
                     continue
                 _data = self._parse_knobs_for_node(lines)
-                _data["Class"] = node_class
+                sub_node_class = self._get_class(out_range=num_ligne)
+                _data["Class"] = sub_node_class
                 sub_node_name = _data.get("name")
                 group_index, group = self._get_class_node_by_key(result, _group_name[1])
                 result[group_index][_group_name[1]]["nodes"].append({sub_node_name: _data})
@@ -142,27 +143,6 @@ class SceneDict(object):
                 result.append({node_name: _data})
 
         return result
-
-    def _get_groups_nodes(self, result_dict):
-        _is_group = False
-        _group_name = None
-        for i, line in enumerate(self._scene_lines):
-            if line.startswith("Group"):
-                _is_group = True
-                _group_name = self._get_name(in_range=i)
-                result_dict["Group"][_group_name]["nodes"] = []
-            elif line.startswith("end_group") and _is_group:
-                _is_group = False
-                _group_name = None
-            if not _is_group:
-                continue
-            if any([self._scene_lines[i].startswith(a) for a in ["set", "push"]]):
-                continue
-            curr_node_name = self._get_name(in_range=i)
-            if _is_group and curr_node_name != _group_name:
-                if curr_node_name not in result_dict["Group"][_group_name]["nodes"]:
-                    result_dict["Group"][_group_name]["nodes"].append(curr_node_name)
-        return result_dict
 
     def _parse_knobs_for_node(self, lines):
         """Parse each line of Node string list
@@ -224,8 +204,6 @@ class SceneDict(object):
 
                 result[prev_knob].append(line)
 
-
-
             # is space or empty line
             elif len(re.findall(r"^\s*$", line)) > 0:
                 continue
@@ -239,16 +217,16 @@ class SceneDict(object):
             # normal knob
             else:
                 try:
-                    if line[0] == " ":
-                        line = line[1:]
-                    splited = line.split(' ')
+                    splited = re.sub(r'^\s+', '', line).split(' ')
                     knob, value = splited[0], " ".join(splited[1:]).replace('"', "")
+
                     result[knob] = value
                     prev_knob = None
                 except:
                     if knob_class not in self._errors.keys():
                         self._errors[knob_class] = []
                     self._errors[knob_class].append((i, line))
+
         return result
 
     def _filtrer_ranges(self, dictionnary):
@@ -349,8 +327,7 @@ class SceneDict(object):
 
         if in_range is None and out_range is None:
             return name
-
-        class_name = self._scene_lines[in_range].split(" ")[0]
+        class_name = re.sub(r'^\s+', '', self._scene_lines[in_range]).split(" ")[0]
         return class_name
 
     def _get_class_name_node(self, index):
@@ -381,9 +358,17 @@ class SceneDict(object):
         curr_scene_name = "current_scene"
         for i, ligne in enumerate(self._scene_lines, 0):
 
+            if i in groups_in:
+                index_cle_in = groups_in.index(i)
+                group_above_in_range = groups_in[index_cle_in - 1]
+            else:
+                group_above_in_range = 0
+
             # IS GROUP PART
-            if any([self._scene_lines[i].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
-                curr_scene_name = self._get_name(in_range=i)
+            if any([self._scene_lines[group_above_in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]) and \
+                not any("end_group" == self._scene_lines[ligne_index] for ligne_index in range(i-2, i)) and \
+                "input" in self._get_class(in_range=i).lower():
+                curr_scene_name = self._get_name(in_range=group_above_in_range)
             elif self._scene_lines[i] == "end_group":
                 curr_scene_name = "current_scene"
 
@@ -392,7 +377,14 @@ class SceneDict(object):
                 if node_object == "cut_paste_input":
                     continue
 
-                node_name = self._get_name(out_range=i)
+                index_name = i
+                if any("end_group" == self._scene_lines[ligne_index] for ligne_index in range(i-2, i)):
+                    while True:
+                        index_name -= 1
+                        if any([self._scene_lines[index_name].startswith(i) for i in ["Group", "LiveGroup", "Gizmo"]]):
+                            break
+
+                node_name = self._get_name(out_range=index_name)
                 if node_name == "NoneName":
                     ri = i
                     while True:
@@ -430,48 +422,48 @@ class SceneDict(object):
                 if not node_name_from_object:
                     continue
                 parent_node_name = node_name_from_object[0].get("name")
-                index_node, parent_node = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], parent_node_name)
+                index_node, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], parent_node_name)
                 _inputs_nodes[curr_scene_name][index_node].get(parent_node_name)["dependents"].append(node_name)
 
             # Multiples Inputs
-            #TODO calculat inputs number and get above from this number
-            elif re.match(r"inputs (?!0$)[12]$", ligne):
+            elif re.match(r"inputs (?!0$)[12]$", re.sub(r'^\s+', '', ligne)):
                 in_range = [in_range for in_range, out_range in self._group_nodes_filtered.items() if in_range <= i <= out_range][0]
                 node_name = self._get_name(in_range=in_range)
                 index_cle_in = groups_in.index(in_range)
                 group_above_in = groups_in[index_cle_in - 1]
                 node_above_name = self._get_name(in_range=group_above_in)
 
-                if not curr_scene_name in _inputs_nodes.keys():
-                    _node = {node_above_name: {
-                        "name": node_above_name,
-                        "dependents": [node_name]
-                    }}
-                    _inputs_nodes[curr_scene_name] = [_node]
+                if not curr_scene_name in _multi_inputs_nodes.keys():
+                    _multi_inputs_nodes[curr_scene_name] = []
+                _multi_inputs_nodes[curr_scene_name].append((node_name, groups_in[index_cle_in]))
+
+                index_node, node = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], node_above_name)
+                if not index_node:
+                    _inputs_nodes[curr_scene_name].append({
+                        node_above_name: {
+                            "name": node_above_name,
+                            "dependents": [node_name]
+                        }
+                    })
                 else:
-                    index_node, node = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], node_above_name)
-                    if not index_node:
-                        _inputs_nodes[curr_scene_name].append({
-                            node_above_name: {
-                                "name": node_above_name,
-                                "dependents": [node_name]
-                            }
-                        })
-                    else:
-                        _inputs_nodes[curr_scene_name][index_node].get(node_above_name)["dependents"].append(node_name)
+                    _inputs_nodes[curr_scene_name][index_node].get(node_above_name)["dependents"].append(node_name)
 
         # If Group has no "inputs 0" get Input node above him
         for i, (in_range, out_range) in enumerate(self._group_nodes_filtered.items()):
 
+            index_cle_in = groups_in.index(in_range)
+            group_above_in_range = groups_in[index_cle_in - 1]
+
             # IS GROUP PART
-            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
-                curr_scene_name = self._get_name(in_range=in_range)
+            if any([self._scene_lines[group_above_in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]) and \
+                not any("end_group" == self._scene_lines[ligne_index] for ligne_index in range(in_range-2, in_range)) and \
+                "input" in self._get_class(in_range=in_range).lower():
+                curr_scene_name = self._get_name(in_range=group_above_in_range)
             elif any([self._scene_lines[in_range - _i] == "end_group" for _i in range(0, 6)]):
                 curr_scene_name = "current_scene"
 
             if not curr_scene_name in _inputs_nodes.keys():
                 _inputs_nodes[curr_scene_name] = []
-
             has_input = True
             node_name = self._get_name(in_range=in_range)
             for ligne_index in range(in_range, out_range):
@@ -482,21 +474,22 @@ class SceneDict(object):
 
             if has_input:
                 if node_name == "NoneName":
+                    if not "Inputs" in self._errors.keys():
+                        self._errors["Inputs"] = []
+                    self._errors["Inputs"].append("{}: {}".format(node_name, in_range))
                     continue
-                index_cle_in = groups_in.index(in_range)
-                group_above_in = groups_in[index_cle_in - 1]
-                if self._scene_lines[in_range-2] == "end_group":
+
+                if any([self._scene_lines[in_range-_i] == "end_group" for _i in range(0, 6)]):
                     while True:
-                        group_above_in -= 1
-                        if self._scene_lines[group_above_in].startswith("Group"):
+                        group_above_in_range -= 1
+                        if group_above_in_range == 0:
                             break
-                node_above_name = self._get_name(in_range=group_above_in)
-                if node_above_name == "NoneName":
-                    while True:
-                        group_above_in -= 1
-                        node_above_name = self._get_name(in_range=group_above_in)
-                        if node_above_name != "NoneName":
+                        if any([self._scene_lines[group_above_in_range].startswith(i) for i in ["Group", "LiveGroup", "Gizmo"]]):
                             break
+
+                if any([self._scene_lines[in_range-_i].startswith("push") for _i in range(0, 3)]):
+                    continue
+                node_above_name = self._get_name(in_range=group_above_in_range)
 
                 if node_above_name not in _inputs_nodes[curr_scene_name]:
                     _inputs_nodes[curr_scene_name].append({node_above_name: {
@@ -509,33 +502,41 @@ class SceneDict(object):
                     _inputs_nodes[curr_scene_name][sub_node_index].get(node_above_name)["dependents"].append(node_name)
 
         _nodes_already_use = []
-        for in_range, (node, f_input_node) in _multi_inputs_nodes.items():
-
-            # IS GROUP PART
-            if any([self._scene_lines[in_range].startswith(a) for a in ["Group", "Gizmo", "LiveGroup"]]):
-                curr_scene_name = self._get_name(in_range=in_range)
-            elif any([self._scene_lines[in_range - _i] == "end_group" for _i in range(0, 6)]):
-                curr_scene_name = "current_scene"
-
-            s_input_node = None
-            for i in reversed(range(in_range)):
-                ligne = self._scene_lines[i]
-                if ligne.startswith("push"):
-                    node_name = self._get_name(out_range=i-1)
-                    if not node_name in _nodes_already_use:
-                        _nodes_already_use.append(node_name)
-                        s_input_node = node_name
+        _nodes_connected = []
+        print("")
+        #TODO calculat inputs number and get above from this number
+        for curr_scene_name, nodes in _multi_inputs_nodes.items():
+            for node, in_range,  in nodes:
+                s_input_node = None
+                for i in reversed(range(in_range)):
+                    ligne = self._scene_lines[i]
+                    if ligne.startswith("push"):
+                        object_node = ligne.split(" ")[-1].replace("$", "")
+                        print(node, object_node)
+                        node_names = [
+                            i for i in _inputs_nodes[curr_scene_name] if i.get("object") == object_node
+                        ]
+                        print(node_name)
+                        print("")
+                        # s_input_nodes.append(node_names)
                         break
+                    else:
+                        node_name = self._get_name(out_range=i-1)
+                        if not node_name in _nodes_already_use:
+                            _nodes_already_use.append(node_name)
+                            s_input_node = node_name
+                            # s_input_nodes.append(node_name)
+                            break
 
-            if not node in _inputs_nodes[curr_scene_name]:
-                _inputs_nodes[curr_scene_name].append({node: {
-                    "dependents": [f_input_node, s_input_node],
-                    "name": node,
-                    "object": None
-                }})
-            else:
-                node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], node)
-                _inputs_nodes[curr_scene_name][node_index].get(node)["dependents"].append(node)
+                if not node in _inputs_nodes[curr_scene_name]:
+                    _inputs_nodes[curr_scene_name].append({s_input_node: {
+                        "dependents": [node],
+                        "name": s_input_node,
+                        "object": None
+                    }})
+                else:
+                    node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], s_input_node)
+                    _inputs_nodes[curr_scene_name][node_index].get(s_input_node)["dependents"].append(node)
 
         return _inputs_nodes
 
@@ -597,10 +598,11 @@ if __name__ == "__main__":
     #     for name, data in i.items():
     #         print(data)
     #         print(data.get("Class"))
-    pprint([data for i in result_dict.get_inputs().get("current_scene") for name, data in i.items() if data.get("name") == "Dot_Retime"])
+    # pprint([data for i in result_dict.get_inputs().get("current_scene") for name, data in i.items() if data.get("name") == "Dot_Retime"])
     # pprint([data for i in result_dict.get_nodes() for name, data in i.items() if isinstance(data, dict) and data.get("Class") == "Group"])
     # pprint([data for i in result_dict.get_nodes() for name, data in i.items() if name == "version"])
-    # pprint(result_dict.get_inputs())
+    pprint(result_dict.get_inputs())
+    pprint([data for i in result_dict.get_nodes() for name, data in i.items() if name == "ASSET_CONFOCADRE1"])
     print("")
     # pprint(result_dict.get_inputs())
     # pprint(result_dict.get_dict().get("Group").keys())

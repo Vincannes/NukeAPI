@@ -6,9 +6,12 @@ from io_file import SceneDict
 def run(path, export_path=None):
 
     scene = SceneDict(path) 
-    # pprint(scene.get_nodes())
+    # pprint([data for i in SceneDict(path) .get_nodes() for name, data in i.items() if isinstance(data, dict) and data.get("Class") == "Group"])
     # print(len(scene.get_nodes()))
     # pprint(scene.errors)
+    # pprint(scene.get_inputs())
+    pprint([data for i in scene.get_inputs().get("current_scene") for name, data in i.items() if name == "ASSET_CONFOCADRE1"])
+
 
     if export_path:
         print(export_path)

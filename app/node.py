@@ -90,7 +90,7 @@ class Node(object):
     def dependencies(self):
         """Nodes that this Node is connected to
         """
-        pass
+        return self._dependencies
 
     def isSelected(self):
         return self._knobs_dict.get("selected", False)
@@ -159,7 +159,6 @@ class Node(object):
     def add_dependencies(self, dependencies=None):
         if not dependencies:
             dependencies = []
-
         self._dependencies = dependencies
 
     def __str__(self):
