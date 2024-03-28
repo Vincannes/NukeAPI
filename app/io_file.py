@@ -399,7 +399,6 @@ class SceneDict(object):
                         if node_name != "NoneName":
                             break
 
-
                 _inputs_nodes[curr_scene_name].append({node_name: {
                     "name": node_name,
                     "object": node_object,
@@ -511,52 +510,55 @@ class SceneDict(object):
                                 data in node.items() if data.get("object") == node_object][0]
                             break
 
-                if node_above_name not in _inputs_nodes[curr_scene_name]:
+                sub_node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], node_above_name)
+                if not sub_node_index:
                     _inputs_nodes[curr_scene_name].append({node_above_name: {
                         "dependents": [node_name],
                         "name": node_above_name,
                         "object": None
                     }})
                 else:
-                    sub_node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], node_above_name)
                     _inputs_nodes[curr_scene_name][sub_node_index].get(node_above_name)["dependents"].append(node_name)
 
-            _nodes_already_use = []
-            _nodes_connected = []
-            # #TODO calculat inputs number and get above from this number
-            # for curr_scene_name, nodes in _multi_inputs_nodes.items():
-            #     for node, in_range,  in nodes:
-            #         s_input_node = None
-            #         for i in reversed(range(in_range)):
-            #             ligne = self._scene_lines[i]
-            #             if ligne.startswith("push"):
-            #                 object_node = ligne.split(" ")[-1].replace("$", "")
-            #                 print(node, object_node)
-            #                 node_names = [
-            #                     i for i in _inputs_nodes[curr_scene_name] if i.get("object") == object_node
-            #                 ]
-            #                 print(node_name)
-            #                 print("")
-            #                 # s_input_nodes.append(node_names)
-            #                 break
-            #             else:
-            #                 node_name = self._get_name(out_range=i-1)
-            #                 if not node_name in _nodes_already_use:
-            #                     _nodes_already_use.append(node_name)
-            #                     s_input_node = node_name
-            #                     # s_input_nodes.append(node_name)
-            #                     break
-            #
-            #         if not node in _inputs_nodes[curr_scene_name]:
-            #             _inputs_nodes[curr_scene_name].append({s_input_node: {
-            #                 "dependents": [node],
-            #                 "name": s_input_node,
-            #                 "object": None
-            #             }})
-            #         else:
-            #             node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], s_input_node)
-            #             _inputs_nodes[curr_scene_name][node_index].get(s_input_node)["dependents"].append(node)
+        #TODO calculat inputs number and get above from this number
+        for curr_scene_name, nodes in _multi_inputs_nodes.items():
+            for node, in_range,  in nodes:
+                offset = 0
+                _nodes_connected = []
+                for i in range(in_range-3, in_range):
+                    ligne = self._scene_lines[i]
+                    if ligne.startswith("push"):
+                        object_node = ligne.split(" ")[-1].replace("$", "")
+                        node_names = [
+                            node for i in _inputs_nodes[curr_scene_name] for node, data in i.items() if data.get("object") == object_node
+                        ][0]
+                        _nodes_connected.append(node_names)
+                        offset += 1
+                        break
 
+                i = 0
+                for _ in range(1, 3-offset):
+                    i += 1
+                    up_in_range = groups_in[groups_in.index(in_range)-i]
+                    up_out_range = groups_out[groups_in.index(in_range)-i]
+                    if up_in_range == up_out_range:
+                        i += 1
+                        up_in_range = groups_in[groups_in.index(in_range)-i]
+                        up_out_range = groups_out[groups_in.index(in_range)-i]
+                    node_name = self._get_name(in_range=up_in_range, out_range=up_out_range)
+                    _nodes_connected.append(node_name) 
+
+                for up_node in _nodes_connected:
+                    node_index, _ = self._get_class_node_by_key(_inputs_nodes[curr_scene_name], up_node)
+                    if not node_index:
+                        _inputs_nodes[curr_scene_name].append({up_node: {
+                            "dependents": [node],
+                            "name": up_node,
+                            "object": None
+                        }})
+                    else:
+                        if not node in _inputs_nodes[curr_scene_name][node_index].get(up_node)["dependents"]:
+                            _inputs_nodes[curr_scene_name][node_index].get(up_node)["dependents"].append(node)
         return _inputs_nodes
 
     def _get_next_node_from_line(self, line):
